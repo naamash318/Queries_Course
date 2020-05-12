@@ -1,17 +1,17 @@
 import re
 import os
 import struct
-import binascii
-import json
-
-def reverseList(aList):
-    rev = aList[::-1]
-    return rev
+import shutil
 
 
 class SlowIndexWriter:
     reviews_counter = 0
-    reviews_buf = bytes(4)
+    reviews_buf = bytes(0)
+    tokens_list = []
+    posting_lists = []
+    dictionary = []
+    string = ""
+
     """------------------------------------------------------------------------------------------------------
     Given product review data, creates an on disk index
     inputFile is the path to the file containing the review data
@@ -28,47 +28,16 @@ class SlowIndexWriter:
             if self.add_review(text[start_review:end_review])!= 0:
                 start_review = end_review
                 continue
-            self.add_to_index(text[start_review:end_review])
+            self.reviews_counter += 1
+            self.add_to_list(text[start_review:end_review])
             start_review=end_review
 
-        reviews_file = open("reviews.bin", "bw")
-        reviews_file.write(self.reviews_buf)
-        reviews_file.close()
-
-        # reviews = text.split("product/productId: ")
-        # for review in reviews:
-        #     self.add_review(review)
-        #     # add_to_index(review)
+        self.tokens_list.sort()
+        self.create_index()
+        self.print_dictionary()
+        self.write_index_to_files(dir)
 
 
-
-        # normal_text = self.normalize(text)
-        # normal_text.sort()
-        # self.reviews_counter+=1
-        # print(normal_text)
-
-        # review_id = 1 #need to be remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # try:
-        #     os.mkdir("index")
-        # except OSError as error:
-        #     pass
-        #
-        # count = 1
-        # for i in range(1, len(normal_text),count):
-        #     word = normal_text[i]
-        #     if i<len(normal_text) and word == normal_text[i+1]:
-        #         count += 1
-        #         continue
-        #     self.insertToFile(word[0], word, review_id, count)
-        #     count = 1
-        #
-        #     # count=1
-        #     # word = normal_text[i]
-        #     # print(i)
-        #     # while word == normal_text[i+1]:
-        #     #     count+=1
-        #     #     i+=1
-        #     # self.insertToFile(word[0], word, review_id , count)
 
 
     """מנתחת את הריויו ולוקחת את הפרטים החשובים שומרת את הריויו כאובייקט בינארי (24 בתים) ומוסיפה אתו לבאפר"""
@@ -90,7 +59,9 @@ class SlowIndexWriter:
             loc = review.find(val[2])+len(val[2])
             end_line = review.find("\n", loc)
             review_score = chr(int(float(review[loc:end_line])))    # 1 byte cnverted from string to float to int t char
-            review_len = len(review)
+
+            # calculate review len (number of tokens)
+            review_len = len(re.split('\W+', review)) - 1   # reduce the token ''
 
             # pack review data into binary struct
             review_tuple = (product_id.encode('ascii'), review_score.encode(),helpfulness_numerator, helpfulness_denominator, review_len)
@@ -112,115 +83,102 @@ class SlowIndexWriter:
             return -1
 
     """מקבלת ריויו מנורמל ויוצרת עבור כל אות רשימה שכל איבר ברשימה הוא טפל של המילה עם מספר המופעים שלה ושולחת את רשימת הרשימות לפונקציה הבאה שתכניס אותם למילון"""
-    def add_to_index(self, review):
+    def add_to_list(self, review):
+
         review_tokens = self.normalize(review)
-        num_of_tokens =len(review_tokens)
-        print(review_tokens)
+        for token in review_tokens:
+            if token != '':
+                self.tokens_list.append((token, self.reviews_counter))
 
-        pre_dict_list= []
-        curr_list =[]
-        count = 1
-        ch = 97  # 'a' ascii code
-        for i in range(1,num_of_tokens):
-            word = review_tokens[i]
-            if ord(word[0]) >= ch:
-                pre_dict_list.append(curr_list)
-                curr_list=[]
-                while ord(word[0]) >= ch:
-                    ch += 1
-            if i+1 == num_of_tokens or word != review_tokens[i+1]:
-                curr_list.append((word,count))
-                count = 1
+    def create_index(self):
+        count_tokens = 1
+        loc_string=0
+        loc_posting_list = 0
+        num_of_pl = 0
+        self.posting_lists.append([])
+        for i in range(len(self.tokens_list)):
+            if i == len(self.tokens_list)-1:
+                self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
+                self.string += self.tokens_list[i][0]
+                self.dictionary.append((loc_string, loc_posting_list))
+                break
+
+            if self.tokens_list[i][0] == self.tokens_list[i+1][0]:
+                if self.tokens_list[i][1] == self.tokens_list[i+1][1]:
+                    count_tokens += 1
+                else:
+                    self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
+                    count_tokens = 1
             else:
-                count += 1
+                self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
+                if self.tokens_list[i][0][0] != self.tokens_list[i+1][0][0]:   #checking if need to create new buffer of posting lists for new letter
+                    self.posting_lists.append([])
+                    num_of_pl += 1
+                self.string += self.tokens_list[i][0]
+                self.dictionary.append((loc_string, loc_posting_list))
+                loc_string = len(self.string)
+                loc_posting_list = len(self.posting_lists[num_of_pl])
 
-        pre_dict_list.append(curr_list)
-        print(pre_dict_list)
-        self.insert_to_index(pre_dict_list)
+    def write_index_to_files(self, dir):
 
-    """ התחלתי לעבוד על זה ודיי נתקעתי..."""
-    def insert_to_index(self,tokens_list):
-        # first review
-        if self.reviews_counter == 1:
-            for tl in tokens_list:
-                posting_list_buffer =
+        try:
+            os.mkdir(dir)
+        except OSError as error:
+            pass
+
+        with open(f"{dir}//string_file.txt","w") as str_file:
+            str_file.write(self.string)
+        with open(f"{dir}//dict_file.bin","bw") as dict_file:
+            dict_buff = bytes(0)
+            for term in self.dictionary:
+                dict_buff += struct.pack("ii", *term)
+            dict_file.write(dict_buff)
+
+        for i in range(len(self.posting_lists)):
+            with open (f"{dir}//pl_{i}.bin","bw") as pl_file:
+                pl_buff = bytes(0)
+                for post in self.posting_lists[i]:
+                    pl_buff += struct.pack("ii", *post)
+                pl_file.write(pl_buff)
+
+        with open(f"{dir}//reviews.bin", "bw") as reviews_file:
+            reviews_file.write(self.reviews_buf)
 
 
-
-   # def add_word_to_dictionary(self, word, review_id, count):
-
-
-
-
+    def print_dictionary(self):
+        for i in range(len(self.dictionary)-1):
+            print(f"{self.string[self.dictionary[i][0]:self.dictionary[i+1][0]]} \t {self.dictionary[i][1]}")
+        print(f"{self.string[self.dictionary[i+1][0]:]} \t {self.dictionary[i+1][1]}")
+        print(f"num of tokens {len(self.dictionary)}")
 
     def normalize(self, text):
         text = text.lower()
         text = re.split('\W+', text)
-        text.sort()
         return text
-    #
-    # def removeIndex(self, dir): """Delete all index files by removing the given directory"""
-    # def insertToFile(self, file_name, word, review_id, count):
-    #     string_file = open(f"index//{file_name}.txt", 'r+')
-    #     data_file = open(f"index//{file_name}.csv", 'r+')
-    #
-    #
-    #     string = string_file.read()
-    #     data = data_file.read()
-    #     if data=='':
-    #         string = word
-    #         data = f"0,{count},{review_id}"
-    #         string_file.seek(0)
-    #         data_file.seek(0)
-    #         string_file.write(string)
-    #         data_file.write(data)
-    #         string_file.close()
-    #         data_file.close()
-    #         return
-    #     data = data.split('\n')
-    #     exist, loc = self.binary_search(data, string, word)
-    #     if exist:
-    #         line = data[loc].split(',')
-    #         line[1] = int(line[1]) + count
-    #         line[2] = line[2] + " " + review_id
-    #         data[loc] = line[0] + "," + line[1] + "," + line[2]
-    #     else:
-    #         pointer = data[loc].split(',')[0]
-    #         line = f"{pointer},{count},{review_id}\n"
-    #         data.insert(loc, line)
-    #         updated_data = self.update_data(data, loc, len(word))
-    #         string = string[:pointer] + word + string[pointer:]
-    #         string_file.write(string)
-    #
-    #     data_file.write("".join(data))
-    #     string_file.close()
-    #     data_file.close()
-    #
-    # def update_data(self, data, loc, w_len):
-    #     for i in range(loc+1, len(data)):
-    #         line = data[i].split(',')
-    #         line[0] = int(line[0]) + w_len
-    #         data[i] = line[0] + "," + line[1] + "," + line[2]
-    #     return data
-    #
-    # def binary_search(self, data, string, word):
-    #     left = 0
-    #     right = len(data)
-    #     while left <= right:
-    #         mid = (left+right-1)//2
-    #         loc = int(data[mid].split(',')[0])
-    #         next_loc = int(data[mid+1].split(',')[0])
-    #         if string[loc:next_loc] == word:
-    #             return True, mid
-    #         elif string[loc:next_loc] < word: # string appears before word
-    #             left = mid+1
-    #         else:
-    #             right = mid-1
-    #     return False, right
-    #
-    #
+
+
+    def binary_search(self,  word, left):
+        right = len(self.dictionary)
+        while left < right:
+            mid = (left+right-1)//2
+            loc = self.dictionary[mid][0]
+            if mid + 1 == len(self.dictionary):
+                next_loc = -1
+            else:
+                next_loc = self.dictionary[mid+1][0]
+            if self.string[loc:next_loc] == word:
+                return True, mid
+            elif self.string[loc:next_loc] < word: # string appears before word
+                left = mid+1
+            else:
+                right = mid-1
+        return False, right
+
+    def removeIndex(self,dir):
+        shutil.rmtree(dir, ignore_errors=True)
 
 
 
 
-S = SlowIndexWriter("reviews//review1.txt", "dir")
+
+S = SlowIndexWriter("reviews//Books100.txt", "dir")
