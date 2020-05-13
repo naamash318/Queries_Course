@@ -181,4 +181,4 @@ class SlowIndexWriter:
 
 
 
-S = SlowIndexWriter("reviews//Books100.txt", "dir")
+S = SlowIndexWriter("reviews//Books10.txt", "dir")

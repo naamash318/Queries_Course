@@ -6,6 +6,7 @@ class IndexReader:
     string = ""
     dictionary = bytes(0)
     reviews = b''
+    pl = b''
     """Creates an IndexReader which will read from the given directory"""
     def __init__(self, dir):
         with open(f"{dir}//string_file.txt","r") as str_file:
@@ -55,13 +56,30 @@ class IndexReader:
         exist, loc = self.binary_search(token)
         if not exist:
             return 0
-        letter = token[0]
         pl_offset = self.dictionary[loc*8+4:loc*8+8]
+        pl_next_offset = self.dictionary[loc*8+12:loc*8+16]
         print(f"{exist} {loc}")
+        return struct.unpack("i",pl_next_offset)[0] - struct.unpack("i",pl_offset)[0]
 
-    def getTokenCollectionFrequency(self,
-                                    token): """Return the number of times that a given token (i.e., word) appears in the reviews indexed Returns 0 if there are no reviews containing this token"""
-
+    """Return the number of times that a given token (i.e., word) appears in the reviews indexed 
+       Returns 0 if there are no reviews containing this token"""
+    def getTokenCollectionFrequency(self,token):
+        exist, loc = self.binary_search(token)
+        if not exist:
+            return 0
+        count_tokens = 0
+        letter = token[0]
+        if letter >= 'a':
+            letter = ord(letter) - 87
+        pl_offset = struct.unpack("i", self.dictionary[loc*8+4:loc*8+8])[0]
+        pl_next_offset = struct.unpack("i", self.dictionary[loc*8+12:loc*8+16])[0]
+        with open(f"dir//pl_{letter}.bin", "br") as pl_file:  #TODO:how get the dir folder
+            self.pl = pl_file.read()
+        print(pl_offset)
+        print((pl_next_offset))
+        for i in range(pl_offset, pl_next_offset):
+            count_tokens += struct.unpack("i" ,self.pl[i*8+4:i*8+8])[0]
+        print(count_tokens)
 
     def getReviewsWithToken(self, token): """Returns a series of integers (Tupple) of the form id-1, freq-1, id-2, freq-2, ... such that id-n is the n-th review containing the given token and freq-n is the number of times that the token appears in review id-n Note that the integers should be sorted by id 
     
@@ -101,4 +119,5 @@ print(r.getReviewScore(3))
 print(r.getReviewHelpfulnessNumerator(3))
 print(r.getReviewHelpfulnessDenominator(3))
 print(r.getReviewLength(3))
-print(r.getTokenFrequency("ab"))
+print(r.getTokenFrequency("about"))
+print(r.getTokenCollectionFrequency("about"))
