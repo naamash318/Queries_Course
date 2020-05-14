@@ -33,6 +33,7 @@ class SlowIndexWriter:
             start_review=end_review
 
         self.tokens_list.sort()
+        self.crete_empty_pl()
         self.create_index()
         self.print_dictionary()
         self.write_index_to_files(dir)
@@ -94,11 +95,11 @@ class SlowIndexWriter:
         count_tokens = 1
         loc_string=0
         loc_posting_list = 0
-        num_of_pl = 0
-        self.posting_lists.append([])
+
         for i in range(len(self.tokens_list)):
+            ch = self.convert_char_int(self.tokens_list[i][0][0])
             if i == len(self.tokens_list)-1:
-                self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
+                self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
                 self.string += self.tokens_list[i][0]
                 self.dictionary.append((loc_string, loc_posting_list))
                 break
@@ -107,17 +108,19 @@ class SlowIndexWriter:
                 if self.tokens_list[i][1] == self.tokens_list[i+1][1]:
                     count_tokens += 1
                 else:
-                    self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
+                    self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
                     count_tokens = 1
             else:
-                self.posting_lists[num_of_pl].append((self.tokens_list[i][1], count_tokens))
-                if self.tokens_list[i][0][0] != self.tokens_list[i+1][0][0]:   #checking if need to create new buffer of posting lists for new letter
-                    self.posting_lists.append([])
-                    num_of_pl += 1
+                self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
                 self.string += self.tokens_list[i][0]
                 self.dictionary.append((loc_string, loc_posting_list))
+                if i != 0 and self.tokens_list[i][0][0] != self.tokens_list[i+1][0][0]:
+                    loc_posting_list = 0
+                else:
+                    loc_posting_list = len(self.posting_lists[ch])
                 loc_string = len(self.string)
-                loc_posting_list = len(self.posting_lists[num_of_pl])
+                count_tokens = 1
+        self.dictionary.append(len((self.tokens_list)))
 
     def write_index_to_files(self, dir):
 
@@ -130,8 +133,9 @@ class SlowIndexWriter:
             str_file.write(self.string)
         with open(f"{dir}//dict_file.bin","bw") as dict_file:
             dict_buff = bytes(0)
-            for term in self.dictionary:
-                dict_buff += struct.pack("ii", *term)
+            for i in range(0, len(self.dictionary)-1):
+                dict_buff += struct.pack("ii", *self.dictionary[i])
+            dict_buff += struct.pack("i", self.dictionary[i+1])
             dict_file.write(dict_buff)
 
         for i in range(len(self.posting_lists)):
@@ -146,9 +150,9 @@ class SlowIndexWriter:
 
 
     def print_dictionary(self):
-        for i in range(len(self.dictionary)-1):
+        for i in range(len(self.dictionary)-2):
             print(f"{self.string[self.dictionary[i][0]:self.dictionary[i+1][0]]} \t {self.dictionary[i][1]}")
-        print(f"{self.string[self.dictionary[i+1][0]:]} \t {self.dictionary[i+1][1]}")
+        #print(f"{self.string[self.dictionary[i+1][0]:]} \t {self.dictionary[i+1][1]}")
         print(f"num of tokens {len(self.dictionary)}")
 
     def normalize(self, text):
@@ -156,6 +160,16 @@ class SlowIndexWriter:
         text = re.split('\W+', text)
         return text
 
+
+    def crete_empty_pl(self):
+        for i in range(0, 36):
+            self.posting_lists.append([])
+
+    def convert_char_int(self, char):
+        if char <= '9':
+            return ord(char)-48
+        if char >= 'a':
+            return ord(char) - 87
 
     def binary_search(self,  word, left):
         right = len(self.dictionary)
@@ -181,4 +195,4 @@ class SlowIndexWriter:
 
 
 
-S = SlowIndexWriter("reviews//Books10.txt", "dir")
+S = SlowIndexWriter("reviews//books100.txt", "dir")

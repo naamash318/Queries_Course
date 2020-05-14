@@ -1,4 +1,6 @@
 import struct
+import os
+import re
 review_len = 24
 
 
@@ -7,14 +9,16 @@ class IndexReader:
     dictionary = bytes(0)
     reviews = b''
     pl = b''
+    dir = ""
     """Creates an IndexReader which will read from the given directory"""
     def __init__(self, dir):
-        with open(f"{dir}//string_file.txt","r") as str_file:
+        with open(f"{dir}//string_file.txt", "r") as str_file:
             self.string = str_file.read()
         with open(f"{dir}//dict_file.bin","br") as dict_file:
             self.dictionary = dict_file.read()
         with open(f"{dir}//reviews.bin", "br") as reviews_file:
             self.reviews = reviews_file.read()
+        self.dir = dir
 
     """Returns the product identifier for the given review Returns null if there is no review with the given identifier"""
     def getProductId(self,reviewId):
@@ -53,71 +57,103 @@ class IndexReader:
 
     """Return the number of reviews containing a given token (i.e., word) Returns 0 if there are no reviews containing this token"""
     def getTokenFrequency(self, token):
-        exist, loc = self.binary_search(token)
-        if not exist:
-            return 0
-        pl_offset = self.dictionary[loc*8+4:loc*8+8]
-        pl_next_offset = self.dictionary[loc*8+12:loc*8+16]
-        print(f"{exist} {loc}")
-        return struct.unpack("i",pl_next_offset)[0] - struct.unpack("i",pl_offset)[0]
+        token = self.normalize(token)
+        pl_offset, pl_next_offset, letter = self.pl_offset(token)
+        return pl_next_offset - pl_offset
 
     """Return the number of times that a given token (i.e., word) appears in the reviews indexed 
        Returns 0 if there are no reviews containing this token"""
     def getTokenCollectionFrequency(self,token):
-        exist, loc = self.binary_search(token)
-        if not exist:
+        token = self.normalize(token)
+        pl_offset, pl_next_offset, letter = self.pl_offset(token)
+        if pl_offset == -1:
             return 0
         count_tokens = 0
-        letter = token[0]
-        if letter >= 'a':
-            letter = ord(letter) - 87
-        pl_offset = struct.unpack("i", self.dictionary[loc*8+4:loc*8+8])[0]
-        pl_next_offset = struct.unpack("i", self.dictionary[loc*8+12:loc*8+16])[0]
-        with open(f"dir//pl_{letter}.bin", "br") as pl_file:  #TODO:how get the dir folder
+        with open(f"{self.dir}//pl_{letter}.bin", "br") as pl_file:
             self.pl = pl_file.read()
-        print(pl_offset)
-        print((pl_next_offset))
         for i in range(pl_offset, pl_next_offset):
             count_tokens += struct.unpack("i" ,self.pl[i*8+4:i*8+8])[0]
-        print(count_tokens)
+        return count_tokens
 
-    def getReviewsWithToken(self, token): """Returns a series of integers (Tupple) of the form id-1, freq-1, id-2, freq-2, ... such that id-n is the n-th review containing the given token and freq-n is the number of times that the token appears in review id-n Note that the integers should be sorted by id 
-    
-    Returns an empty Tupple if there are no reviews containing this token"""
+    """Returns a series of integers (Tupple) of the form id-1, freq-1, id-2, freq-2, ... such that id-n is the n-th review containing the given token and freq-n is the number of times that the token appears in review id-n 
+        Note that the integers should be sorted by id 
+       Returns an empty Tupple if there are no reviews containing this token"""
+    def getReviewsWithToken(self, token):
+        token = self.normalize(token)
+        pl_offset, pl_next_offset, letter = self.pl_offset(token)
+        pl_tuple = []
+        if pl_offset == -1:
+            return tuple(pl_tuple)
+        with open(f"{self.dir}//pl_{letter}.bin", "br") as pl_file:
+            self.pl = pl_file.read()
+        for i in range(pl_offset, pl_next_offset):
+            pl_tuple.append(struct.unpack("i", self.pl[i * 8:i * 8 + 4])[0])
+            pl_tuple.append(struct.unpack("i" ,self.pl[i * 8+4:i*8+8])[0])
+        return tuple(pl_tuple)
+
+    """Return the number of product reviews available in the system"""
+    def getNumberOfReviews(self):
+        sizeReview = os.stat(f"{self.dir}//reviews.bin").st_size
+        return sizeReview//24
+
+    """Return the number of tokens in the system (Tokens should be counted as many times as they appear)"""
+    def getTokenSizeOfReviews(self):
+        return struct.unpack("i", self.dictionary[-4:]) [0]
 
 
-    def getNumberOfReviews(self): """Return the number of product reviews available in the system"""
+    """Return the ids of the reviews for a given product identifier Note that the integers returned should be sorted by id Returns an empty Tuple if there are no reviews for this product"""
+    def getProductReviews(self, productId):
+        reviews_id = []
+        for i in range(1, self.getNumberOfReviews()):
+            if self.getProductId(i) == productId:
+                reviews_id.append(i)
+        return tuple(reviews_id)
 
-
-    def getTokenSizeOfReviews(
-            self): """Return the number of tokens in the system (Tokens should be counted as many times as they appear)"""
-
-
-    def getProductReviews(self,
-                          productId): """Return the ids of the reviews for a given product identifier Note that the integers returned should be sorted by id Returns an empty Tuple if there are no reviews for this product"""
 
     def binary_search(self, word):
-        right = len(self.dictionary)//8
+        right = len(self.dictionary)//8 -4 ######
         left = 0
         while left <= right:
             mid = (left + right) // 2
             loc = struct.unpack("i",self.dictionary[mid*8:mid*8+4])[0]
             next_loc = struct.unpack("i",self.dictionary[mid*8+8:mid*8+12])[0]
-            #print(f"mid is {mid} string[{loc}:{next_loc}] is {self.string[loc:next_loc]}")
             if self.string[loc:next_loc] == word:
                 return True, mid
             elif self.string[loc:next_loc] < word:  # string appears before word
-                print("in plus")
                 left = mid + 1
             else:
                 right = mid - 1
         return False, right
 
+
+    def pl_offset(self, token):
+        exist, loc = self.binary_search(token)
+        if not exist:
+            return -1, -1, "-1"
+        letter = token[0]
+        if letter >= 'a':
+            letter = ord(letter) - 87
+        pl_offset = struct.unpack("i", self.dictionary[loc*8+4:loc*8+8])[0]
+        pl_next_offset = struct.unpack("i", self.dictionary[loc*8+12:loc*8+16])[0]
+        size = os.stat(f"{self.dir}//pl_{letter}.bin").st_size
+        if pl_next_offset == 0:
+            pl_next_offset = size // 8
+        return pl_offset, pl_next_offset, letter
+
+    def normalize(self, token):
+        token = token.lower()
+        token = token.strip()
+        return token
+
 r = IndexReader("dir")
-print(r.getProductId(3))
-print(r.getReviewScore(3))
-print(r.getReviewHelpfulnessNumerator(3))
-print(r.getReviewHelpfulnessDenominator(3))
-print(r.getReviewLength(3))
-print(r.getTokenFrequency("about"))
-print(r.getTokenCollectionFrequency("about"))
+print(r.getProductId(100))
+print(r.getReviewScore(100))
+print(r.getReviewHelpfulnessNumerator(100))
+print(r.getReviewHelpfulnessDenominator(100))
+print(r.getReviewLength(100))
+print(r.getTokenFrequency("About"))
+print(r.getTokenCollectionFrequency("abOUt"))
+print(r.getReviewsWithToken("about      "))
+print(r.getNumberOfReviews())
+print(r.getTokenSizeOfReviews())
+print(r.getProductReviews("B000NKGYMK"))
