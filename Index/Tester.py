@@ -1,6 +1,8 @@
 import SlowIndexWriter
 import IndexReader
 import unittest
+import re
+import time
 
 class test(unittest.TestCase):
 
@@ -34,7 +36,7 @@ class test(unittest.TestCase):
 
     def test_helpfulness(self):
         r = IndexReader.IndexReader("dir")
-        for i in range(1,1001):
+        for i in range(1,101):
             n = r.getReviewHelpfulnessNumerator(i)
             d = r.getReviewHelpfulnessDenominator(i)
             self.assertTrue(n>=0 and d>=0 and n<=d,f"incorrect helpfulness {n}/{d} for review {i}")
@@ -56,14 +58,83 @@ class test(unittest.TestCase):
 
     def test_token_freq(self):
         r = IndexReader.IndexReader("dir")
-        self.assertNotEqual(r.getTokenFrequency('about'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('ABout'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency(' about '), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('a'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('you'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('about'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('about'), -1, "error")
-        self.assertNotEqual(r.getTokenFrequency('about'), -1, "error")
+        with open("reviews/Books100.txt") as books:
+            words = books.read()
+        words = re.split(r'[_\b\W]+', words)
+        for word in words:
+            if word != '':
+                self.assertNotEqual(r.getTokenFrequency(word), 0, f'error {word}')
+
+        self.assertNotEqual(r.getTokenFrequency('about/80'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('ABout'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency(' about '), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('a'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('you'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('about'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('about'), 0, "error")
+        self.assertNotEqual(r.getTokenFrequency('about'), 0, "error")
+        self.assertEqual(r.getTokenFrequency('wsdfgtke'),0,"error")
+
+    def test_collec_freq(self):
+        r = IndexReader.IndexReader("dir")
+        with open("reviews/Books100.txt") as books:
+            words = books.read()
+        words = re.split(r'[_\b\W]+', words)
+        for word in words:
+            if word != '':
+                self.assertNotEqual(r.getTokenCollectionFrequency(word), 0, f'error {word}')
+
+        self.assertNotEqual(r.getTokenCollectionFrequency('about'), 0, "error")
+        self.assertNotEqual(r.getTokenCollectionFrequency('ABout'), 0, "error")
+        self.assertNotEqual(r.getTokenCollectionFrequency(' about '), 0, "error")
+        self.assertEqual(r.getTokenCollectionFrequency('wsdfgtke'),0,"error")
+
+    def test_get_reviews_with_token(self):
+        r = IndexReader.IndexReader("dir")
+        self.assertEqual(r.getReviewsWithToken('wsdfgtke'), (), "error")
+
+    # def test_get_num_of_reviews(self):
+    #
+    #     print("try 100")
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//Books100.txt", "dir")
+    #     r = IndexReader.IndexReader("dir")
+    #     self.assertEqual(r.getNumberOfReviews(), 100, "error 100")
+    #     S.removeIndex("dir")
+    #
+    #     #time.sleep(100)
+    #     print("try 1000")
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//Books1000.txt", "dir1")
+    #     r = IndexReader.IndexReader("dir1")
+    #     self.assertEqual(r.getNumberOfReviews(), 1000, "error 1000")
+    #     S.removeIndex("dir1")
+    #
+    #     print("try review1")
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//review1.txt", "dir")
+    #     r = IndexReader.IndexReader("dir")
+    #     self.assertEqual(r.getNumberOfReviews(), 1, "error 1")
+    #     S.removeIndex("dir")
+    #
+    # def test_get_num_of_tokens(self):
+    #     print("try 100")
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//Books10.txt", "dir")
+    #     r = IndexReader.IndexReader("dir")
+    #     self.assertEqual(r.getTokenSizeOfReviews(), 2924, "error 100")
+    #     S.removeIndex("dir")
+    #
+    #     # time.sleep(100)
+    #     print("try 1000")
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//Books1000.txt", "dir1")
+    #     r = IndexReader.IndexReader("dir1")
+    #     self.assertNotEqual(r.getTokenSizeOfReviews(), 1000, "error 1000")
+    #     S.removeIndex("dir1")
+    #
+    # def test_get_product_review(self):
+    #     S = SlowIndexWriter.SlowIndexWriter("reviews//Books100.txt", "dir")
+    #     r = IndexReader.IndexReader("dir")
+    #
+    #     self.assertEqual(r.getProductReviews('0'), (), "error")
+    #     self.assertNotEqual(r.getProductReviews('B000NKGYMK'), (), "error")
+
 
     # print(r.getProductId(100))
     # print(r.getReviewScore(100))

@@ -1,3 +1,7 @@
+"""---------------------------------------------------------------------------------------------------------------------
+Dassi Krakinovski:  318525920
+Naama Swimmer:      318754066
+---------------------------------------------------------------------------------------------------------------------"""
 import re
 import os
 import struct
@@ -87,7 +91,7 @@ class SlowIndexWriter:
             return 0
 
         except ValueError as error:
-            print("error with review's values")
+            #print("error with review's values")
             return -1
 
     """-----------------------------------------------------------------------------------------------------------------
@@ -219,5 +223,12 @@ class SlowIndexWriter:
     -----------------------------------------------------------------------------------------------------------------"""
     def removeIndex(self,dir):
         shutil.rmtree(dir, ignore_errors=True)
+        self.reviews_counter = 0
+        self.reviews_buf = bytes(0)
+        self.tokens_list.clear()
+        self.posting_lists.clear()
+        self.dictionary.clear()
+        self.string = ""
+
 
 

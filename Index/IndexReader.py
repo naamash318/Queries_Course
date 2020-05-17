@@ -1,3 +1,7 @@
+"""---------------------------------------------------------------------------------------------------------------------
+Dassi Krakinovski:  318525920
+Naama Swimmer:      318754066
+---------------------------------------------------------------------------------------------------------------------"""
 import struct
 import os
 import re
@@ -62,13 +66,19 @@ class IndexReader:
 
     """Return the number of reviews containing a given token (i.e., word) Returns 0 if there are no reviews containing this token"""
     def getTokenFrequency(self, token):
+        if type(token) != str:
+            return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
+        if pl_offset == -1:
+            return 0
         return pl_next_offset - pl_offset
 
     """Return the number of times that a given token (i.e., word) appears in the reviews indexed 
        Returns 0 if there are no reviews containing this token"""
     def getTokenCollectionFrequency(self,token):
+        if type(token) != str:
+            return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
         if pl_offset == -1:
@@ -84,6 +94,8 @@ class IndexReader:
         Note that the integers should be sorted by id 
        Returns an empty Tupple if there are no reviews containing this token"""
     def getReviewsWithToken(self, token):
+        if type(token) != str:
+            return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
         pl_tuple = []
@@ -116,7 +128,7 @@ class IndexReader:
 
 
     def binary_search(self, word):
-        right = len(self.dictionary)//8 -4 ######
+        right = len(self.dictionary)//8 - 4
         left = 0
         while left <= right:
             mid = (left + right) // 2
