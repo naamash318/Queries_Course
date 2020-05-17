@@ -13,15 +13,15 @@ class SlowIndexWriter:
     string = ""
 
     """------------------------------------------------------------------------------------------------------
-    Given product review data, creates an on disk index
-    inputFile is the path to the file containing the review data
-    dir is the directory in which all index files will be created
-    if the directory does not exist, it should be created
+    Creates an Index on the disk.
+    
+    Input:  inputFile:  The path to the file containing the review data
+            dir:        The directory in which all index files will be created, if the directory does not exist, it should be created
     ---------------------------------------------------------------------------------------------------------"""
     def __init__(self, inputFile, dir):
 
-        text_file = open(inputFile)
-        text = text_file.read()
+        with open(inputFile) as text_file:
+            text = text_file.read()
         start_review = text.find("product/productId: ")
         while start_review != -1:
             end_review = text.find("product/productId: ", start_review+1)
@@ -35,13 +35,20 @@ class SlowIndexWriter:
         self.tokens_list.sort()
         self.crete_empty_pl()
         self.create_index()
-        self.print_dictionary()
+        #self.print_dictionary()
         self.write_index_to_files(dir)
 
-
-
-
-    """מנתחת את הריויו ולוקחת את הפרטים החשובים שומרת את הריויו כאובייקט בינארי (24 בתים) ומוסיפה אתו לבאפר"""
+    """-----------------------------------------------------------------------------------------------------------------
+    Add a review values to the reviews buffer.
+    
+    Input:  review: A string which contains one review.
+    Values to store:    -productId: 10 Bytes
+                        -score: 1 Bytes
+                        -helpfulness: 2 integers = 8 Bytes
+                        -length: integer = 4 Bytes
+                        
+    TODO: There is an empty byte between score to helpfulness due to struct alignments
+    -----------------------------------------------------------------------------------------------------------------"""
     def add_review(self, review):
         val = ["product/productId: ", "review/helpfulness: ", "review/score: "]
         try:
@@ -76,14 +83,17 @@ class SlowIndexWriter:
             # print(s.size)
 
             self.reviews_buf += packed_data
-            print("successfully added review to buf ")
+            #Sprint("successfully added review to buf ")
             return 0
 
         except ValueError as error:
             print("error with review's values")
             return -1
 
-    """מקבלת ריויו מנורמל ויוצרת עבור כל אות רשימה שכל איבר ברשימה הוא טפל של המילה עם מספר המופעים שלה ושולחת את רשימת הרשימות לפונקציה הבאה שתכניס אותם למילון"""
+    """-----------------------------------------------------------------------------------------------------------------
+    Adding the tokens of a review to the tokens list, for each tokens saving the reviewId
+    Input: review: normalize review - a list of the tokens appear in the review 
+    -----------------------------------------------------------------------------------------------------------------"""
     def add_to_list(self, review):
 
         review_tokens = self.normalize(review)
@@ -91,6 +101,15 @@ class SlowIndexWriter:
             if token != '':
                 self.tokens_list.append((token, self.reviews_counter))
 
+    """-----------------------------------------------------------------------------------------------------------------
+    Creating the dictionary and the posting lists.
+    
+    self.dictionary:    a list of tuples. 
+                        each tuple contains: offset of word in the string, offset of the posting list.
+                        The last variable in the list is the numbers of tokens in the collection. 
+    self.posting lists: a list of lists, each list contains the posting list of tokens which start with one letter.
+                        posting list is a list of tuples, each tuple contains: review_id, freq
+    -----------------------------------------------------------------------------------------------------------------"""
     def create_index(self):
         count_tokens = 1
         loc_string=0
@@ -122,15 +141,24 @@ class SlowIndexWriter:
                 count_tokens = 1
         self.dictionary.append(len((self.tokens_list)))
 
+    """-----------------------------------------------------------------------------------------------------------------
+    Write the Index on the disk.
+    
+    Input: dir: The directory in which all index files will be created, if the directory does not exist, it should be created  
+    -----------------------------------------------------------------------------------------------------------------"""
     def write_index_to_files(self, dir):
 
+        # make directory
         try:
             os.mkdir(dir)
         except OSError as error:
             pass
 
+        # write string
         with open(f"{dir}//string_file.txt","w") as str_file:
             str_file.write(self.string)
+
+        # write dictionary
         with open(f"{dir}//dict_file.bin","bw") as dict_file:
             dict_buff = bytes(0)
             for i in range(0, len(self.dictionary)-1):
@@ -138,6 +166,7 @@ class SlowIndexWriter:
             dict_buff += struct.pack("i", self.dictionary[i+1])
             dict_file.write(dict_buff)
 
+        # write 36 files of posting lists
         for i in range(len(self.posting_lists)):
             with open (f"{dir}//pl_{i}.bin","bw") as pl_file:
                 pl_buff = bytes(0)
@@ -145,54 +174,50 @@ class SlowIndexWriter:
                     pl_buff += struct.pack("ii", *post)
                 pl_file.write(pl_buff)
 
+        # write reviews file
         with open(f"{dir}//reviews.bin", "bw") as reviews_file:
             reviews_file.write(self.reviews_buf)
 
-
+    """ Help function, prints the dictionary"""
     def print_dictionary(self):
         for i in range(len(self.dictionary)-2):
             print(f"{self.string[self.dictionary[i][0]:self.dictionary[i+1][0]]} \t {self.dictionary[i][1]}")
-        #print(f"{self.string[self.dictionary[i+1][0]:]} \t {self.dictionary[i+1][1]}")
+        print(f"{self.string[self.dictionary[i+1][0]:]} \t {self.dictionary[i+1][1]}")
         print(f"num of tokens {len(self.dictionary)}")
 
+    """-----------------------------------------------------------------------------------------------------------------
+    Normalizing a text.
+    
+    input: text: string
+    output: a list of tokens in the text
+    -----------------------------------------------------------------------------------------------------------------"""
     def normalize(self, text):
         text = text.lower()
-        text = re.split('\W+', text)
+        text = re.split(r'[_\b\W]+', text)
         return text
 
-
+    """-----------------------------------------------------------------------------------------------------------------
+    Creating 36 empty list for posting lists
+    -----------------------------------------------------------------------------------------------------------------"""
     def crete_empty_pl(self):
         for i in range(0, 36):
             self.posting_lists.append([])
 
+    """-----------------------------------------------------------------------------------------------------------------
+    Input: an alphanumeric character
+    Output: The matching posting list file number
+    -----------------------------------------------------------------------------------------------------------------"""
     def convert_char_int(self, char):
         if char <= '9':
             return ord(char)-48
         if char >= 'a':
             return ord(char) - 87
 
-    def binary_search(self,  word, left):
-        right = len(self.dictionary)
-        while left < right:
-            mid = (left+right-1)//2
-            loc = self.dictionary[mid][0]
-            if mid + 1 == len(self.dictionary):
-                next_loc = -1
-            else:
-                next_loc = self.dictionary[mid+1][0]
-            if self.string[loc:next_loc] == word:
-                return True, mid
-            elif self.string[loc:next_loc] < word: # string appears before word
-                left = mid+1
-            else:
-                right = mid-1
-        return False, right
-
+    """-----------------------------------------------------------------------------------------------------------------
+    Removing the entire Index from the disk
+    Input: dir of index
+    -----------------------------------------------------------------------------------------------------------------"""
     def removeIndex(self,dir):
         shutil.rmtree(dir, ignore_errors=True)
 
 
-
-
-
-S = SlowIndexWriter("reviews//books100.txt", "dir")
