@@ -22,37 +22,42 @@ class IndexReader:
 
     """Returns the product identifier for the given review Returns null if there is no review with the given identifier"""
     def getProductId(self,reviewId):
-        product_id = self.reviews[(reviewId-1)*review_len:(reviewId-1)*review_len+10]
-        if product_id != b'':
-            return product_id.decode()
+        if reviewId>0 and reviewId<= self.getNumberOfReviews():
+            product_id = self.reviews[(reviewId-1)*review_len:(reviewId-1)*review_len+10]
+            if product_id != b'':
+                return product_id.decode()
         return None
 
     """Returns the score for a given review Returns -1 if there is no review with the given identifier"""
     def getReviewScore(self, reviewId):
-        score = self.reviews[(reviewId-1)*review_len+10:(reviewId-1)*review_len+11]
-        if score != b'':
-            return ord(score)
+        if reviewId > 0 and reviewId <= self.getNumberOfReviews():
+            score = self.reviews[(reviewId-1)*review_len+10:(reviewId-1)*review_len+11]
+            if score != b'':
+                return ord(score)
         return -1
 
     """Returns the numerator for the helpfulness of a given review Returns -1 if there is no review with the given identifier"""
     def getReviewHelpfulnessNumerator(self, reviewId):
-        numerator = self.reviews[(reviewId - 1) * review_len + 12:(reviewId - 1) * review_len + 16]  #TODO: there is an empty byte before those ints...
-        if numerator != b'':
-            return struct.unpack("i", numerator)[0]
+        if reviewId > 0 and reviewId <= self.getNumberOfReviews():
+            numerator = self.reviews[(reviewId - 1) * review_len + 12:(reviewId - 1) * review_len + 16]  #TODO: there is an empty byte before those ints...
+            if numerator != b'':
+                return struct.unpack("i", numerator)[0]
         return -1
 
     """Returns the denominator for the helpfulness of a given review Returns -1 if there is no review with the given identifier"""
     def getReviewHelpfulnessDenominator(self, reviewId):
-        denomirator = self.reviews[(reviewId - 1) * review_len + 16:(reviewId - 1) * review_len + 20]  #TODO: there is an empty byte before those ints...
-        if denomirator != b'':
-            return struct.unpack("i", denomirator)[0]
+        if reviewId > 0 and reviewId <= self.getNumberOfReviews():
+            denomirator = self.reviews[(reviewId - 1) * review_len + 16:(reviewId - 1) * review_len + 20]  #TODO: there is an empty byte before those ints...
+            if denomirator != b'':
+                return struct.unpack("i", denomirator)[0]
         return -1
 
     """Returns the number of tokens in a given review Returns -1 if there is no review with the given identifier"""
     def getReviewLength(self, reviewId):
-        len = self.reviews[(reviewId - 1) * review_len + 20:(reviewId - 1) * review_len + 24]  # TODO: there is an empty byte before those ints...
-        if len != b'':
-            return struct.unpack("i", len)[0]
+        if reviewId > 0 and reviewId <= self.getNumberOfReviews():
+            len = self.reviews[(reviewId - 1) * review_len + 20:(reviewId - 1) * review_len + 24]  # TODO: there is an empty byte before those ints...
+            if len != b'':
+                return struct.unpack("i", len)[0]
         return -1
 
     """Return the number of reviews containing a given token (i.e., word) Returns 0 if there are no reviews containing this token"""
@@ -145,15 +150,3 @@ class IndexReader:
         token = token.strip()
         return token
 
-r = IndexReader("dir")
-print(r.getProductId(100))
-print(r.getReviewScore(100))
-print(r.getReviewHelpfulnessNumerator(100))
-print(r.getReviewHelpfulnessDenominator(100))
-print(r.getReviewLength(100))
-print(r.getTokenFrequency("About"))
-print(r.getTokenCollectionFrequency("abOUt"))
-print(r.getReviewsWithToken("about      "))
-print(r.getNumberOfReviews())
-print(r.getTokenSizeOfReviews())
-print(r.getProductReviews("B000NKGYMK"))
