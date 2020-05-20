@@ -25,6 +25,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IndexReader.py" beforeDir="false" afterPath="$PROJECT_DIR$/IndexReader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SlowIndexWriter.py" beforeDir="false" afterPath="$PROJECT_DIR$/SlowIndexWriter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tester.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reviews/review1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/reviews/review1.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,10 +52,10 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/AppData/Local/Programs/Python/Python38/Scripts" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/venv/Scripts" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.IndexReader">
+  <component name="RunManager" selected="Python tests.Unittests in Tester.py">
     <configuration name="IndexReader" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Index" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -72,16 +74,16 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="SlowIndexWriter" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="SlowIndexWriter" type="PythonConfigurationType" factoryName="Python">
       <module name="Index" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Users\TEST\AppData\Local\Programs\Python\Python38\pythonw.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SlowIndexWriter.py" />
@@ -156,16 +158,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Unittests in Tester.py" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <module name="Index" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/Tester.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.SlowIndexWriter" />
       <item itemvalue="Python.try" />
       <item itemvalue="Python.try (1)" />
       <item itemvalue="Python.IndexReader" />
+      <item itemvalue="Python tests.Unittests in Tester.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Unittests in Tester.py" />
         <item itemvalue="Python.IndexReader" />
-        <item itemvalue="Python.SlowIndexWriter" />
         <item itemvalue="Python.try (1)" />
         <item itemvalue="Python.try" />
       </list>
@@ -182,6 +199,13 @@
       <option name="presentableId" value="Default" />
       <updated>1588151242002</updated>
     </task>
+    <task id="LOCAL‎00001" summary="Finish">
+      <created>1589477921901</created>
+      <option name="number" value="LOCAL‎00001" />
+      <option name="presentableId" value="LOCAL‎00001" />
+      <updated>1589477921901</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -196,39 +220,43 @@
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Finish" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finish" />
+  </component>
   <component name="WindowStateProjectService">
-    <state x="544" y="115" key="#SlowIndexWriter" timestamp="1589395654038">
+    <state x="544" y="115" key="#SlowIndexWriter" timestamp="1589981191759">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="544" y="115" key="#SlowIndexWriter/0.0.1920.1040@0.0.1920.1040" timestamp="1589395654038" />
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589401606462">
+    <state x="544" y="115" key="#SlowIndexWriter/0.0.1920.1040@0.0.1920.1040" timestamp="1589981191759" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589981375230">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589401606462" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589981375230" />
     <state x="740" y="225" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1589396096734">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="225" key="#com.intellij.ide.macro.MacrosDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589396096734" />
-    <state x="681" y="275" key="FileChooserDialogImpl" timestamp="1589396336282">
+    <state x="681" y="275" key="FileChooserDialogImpl" timestamp="1589981335814">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="681" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1589396336282" />
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1589477170965">
+    <state x="681" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1589981335814" />
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1589985694387">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1589477170965" />
-    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1589477170965">
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
+    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1589985694387">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1589477170965" />
-    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1589477170965">
+    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
+    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1589985694387">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1589477170965" />
-    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1589477170965">
+    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
+    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1589985694387">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1589477170965" />
+    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
     <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1589401299078">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -245,10 +273,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1589401299078" />
-    <state x="461" y="165" key="SettingsEditor" timestamp="1589396343694">
+    <state x="461" y="165" key="SettingsEditor" timestamp="1589981342989">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="461" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1589396343694" />
+    <state x="461" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1589981342989" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1589477934518">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1589477934518" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

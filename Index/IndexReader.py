@@ -110,12 +110,15 @@ class IndexReader:
 
     """Return the number of product reviews available in the system"""
     def getNumberOfReviews(self):
-        sizeReview = os.stat(f"{self.dir}//reviews.bin").st_size
-        return sizeReview//24
+        size_review = len(self.reviews)
+        return size_review//24
 
     """Return the number of tokens in the system (Tokens should be counted as many times as they appear)"""
     def getTokenSizeOfReviews(self):
-        return struct.unpack("i", self.dictionary[-4:]) [0]
+        count_tokens = 0
+        for i in range(0, self.getNumberOfReviews()):
+            count_tokens += struct.unpack("i",self.reviews[i*review_len+20:i*review_len+24])[0]
+        return count_tokens
 
 
     """Return the ids of the reviews for a given product identifier Note that the integers returned should be sorted by id Returns an empty Tuple if there are no reviews for this product"""
@@ -128,7 +131,7 @@ class IndexReader:
 
 
     def binary_search(self, word):
-        right = len(self.dictionary)//8 - 4
+        right = len(self.dictionary)//8
         left = 0
         while left <= right:
             mid = (left + right) // 2

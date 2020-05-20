@@ -29,11 +29,12 @@ class SlowIndexWriter:
         start_review = text.find("product/productId: ")
         while start_review != -1:
             end_review = text.find("product/productId: ", start_review+1)
-            if self.add_review(text[start_review:end_review])!= 0:
+            start_text = text.find("review/text: ", start_review+1)
+            if self.add_review(text[start_review:start_text], text[start_text+13:end_review])!= 0:
                 start_review = end_review
                 continue
             self.reviews_counter += 1
-            self.add_to_list(text[start_review:end_review])
+            self.add_to_list(text[start_text+13:end_review])
             start_review=end_review
 
         self.tokens_list.sort()
@@ -53,7 +54,7 @@ class SlowIndexWriter:
                         
     TODO: There is an empty byte between score to helpfulness due to struct alignments
     -----------------------------------------------------------------------------------------------------------------"""
-    def add_review(self, review):
+    def add_review(self, review, text):
         val = ["product/productId: ", "review/helpfulness: ", "review/score: "]
         try:
             # Find product id
@@ -73,8 +74,9 @@ class SlowIndexWriter:
             review_score = chr(int(float(review[loc:end_line])))    # 1 byte cnverted from string to float to int t char
 
             # calculate review len (number of tokens)
-            review_len = len(re.split('\W+', review)) - 1   # reduce the token ''
-
+            text = re.split(r'[_\b\W]+', text)
+            text = list(filter(None, text))
+            review_len = len(text)
             # pack review data into binary struct
             review_tuple = (product_id.encode('ascii'), review_score.encode(),helpfulness_numerator, helpfulness_denominator, review_len)
             review_format = "10s 1s i i  i"
@@ -143,7 +145,6 @@ class SlowIndexWriter:
                     loc_posting_list = len(self.posting_lists[ch])
                 loc_string = len(self.string)
                 count_tokens = 1
-        self.dictionary.append(len((self.tokens_list)))
 
     """-----------------------------------------------------------------------------------------------------------------
     Write the Index on the disk.
@@ -165,9 +166,8 @@ class SlowIndexWriter:
         # write dictionary
         with open(f"{dir}//dict_file.bin","bw") as dict_file:
             dict_buff = bytes(0)
-            for i in range(0, len(self.dictionary)-1):
+            for i in range(0, len(self.dictionary)):
                 dict_buff += struct.pack("ii", *self.dictionary[i])
-            dict_buff += struct.pack("i", self.dictionary[i+1])
             dict_file.write(dict_buff)
 
         # write 36 files of posting lists
@@ -197,6 +197,7 @@ class SlowIndexWriter:
     -----------------------------------------------------------------------------------------------------------------"""
     def normalize(self, text):
         text = text.lower()
+        text = text.strip()
         text = re.split(r'[_\b\W]+', text)
         return text
 
