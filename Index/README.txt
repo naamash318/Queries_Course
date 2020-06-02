@@ -17,5 +17,4 @@ python IndexReader.py
 ===Comments:===
 -- The IndexReader.py file reads from the index only after the index has been built and has not changed since its built.
 -- The amount of words in the collection does not exceed 2^32 words.
--- The index consists of all the reviews including all fields and not just the text.
 -- The user inserts a token consisting of one word (alphanumeric word).

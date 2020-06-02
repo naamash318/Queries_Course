@@ -23,7 +23,7 @@ class SlowIndexWriter:
             dir:        The directory in which all index files will be created, if the directory does not exist, it should be created
     ---------------------------------------------------------------------------------------------------------"""
     def __init__(self, inputFile, dir):
-
+        print("in init")
         with open(inputFile) as text_file:
             text = text_file.read()
         start_review = text.find("product/productId: ")
@@ -171,10 +171,16 @@ class SlowIndexWriter:
             dict_file.write(dict_buff)
 
         # write 36 files of posting lists
+        print (len(self.posting_lists[10]))
         for i in range(len(self.posting_lists)):
+            print(i)
+            count = 0
             with open (f"{dir}//pl_{i}.bin","bw") as pl_file:
                 pl_buff = bytes(0)
                 for post in self.posting_lists[i]:
+                    if i == 10:
+                        count += 1
+                        print(count)
                     pl_buff += struct.pack("ii", *post)
                 pl_file.write(pl_buff)
 
@@ -230,6 +236,8 @@ class SlowIndexWriter:
         self.posting_lists.clear()
         self.dictionary.clear()
         self.string = ""
+
+s = SlowIndexWriter("reviews//Books1000.txt", "dir")
 
 
 
