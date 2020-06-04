@@ -237,7 +237,7 @@ class SlowIndexWriter:
         self.dictionary.clear()
         self.string = ""
 
-s = SlowIndexWriter("reviews//Books1000.txt", "dir")
+s = SlowIndexWriter("reviews//Books10.txt", "dir")
 
 
 

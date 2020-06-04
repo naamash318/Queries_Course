@@ -6,6 +6,7 @@ import re
 import os
 import struct
 import shutil
+from math import log
 
 
 class MiniIndexWriter:
@@ -24,8 +25,9 @@ class MiniIndexWriter:
     ---------------------------------------------------------------------------------------------------------"""
 
     def __init__(self, inputFile, dir):
-        #with open(inputFile) as text_file:
-        text = inputFile
+        with open(inputFile) as text_file:
+            text = text_file.read()
+        #text = inputFile
         start_review = text.find("product/productId: ")
         while start_review != -1:
             end_review = text.find("product/productId: ", start_review + 1)
@@ -178,6 +180,7 @@ class MiniIndexWriter:
 
         # write 36 files of posting lists
         for i in range(len(self.posting_lists)):
+            self.compress_pl(i)
             with open(f"{dir}//pl_{i}.bin", "bw") as pl_file:
                 pl_buff = bytes(0)
                 for post in self.posting_lists[i]:
@@ -187,6 +190,42 @@ class MiniIndexWriter:
         # write reviews file
         with open(f"{dir}//reviews.bin", "bw") as reviews_file:
             reviews_file.write(self.reviews_buf)
+
+
+    def compress_pl(self, num_pl):
+        num_bytes = [0,0,0,0]
+        bytes_def = ["00", "01", "10", "11"]
+        pl_buff = ""
+        first_byte = '0'
+        num_pl = 10
+        print(self.posting_lists[num_pl])
+        print(self.dictionary)
+        print(self.string)
+        print(self.string.find('a'))
+        for i in range(len(self.posting_lists[num_pl])-1):
+            self.posting_lists[num_pl][i] = ((self.posting_lists[num_pl][i+1][0] - self.posting_lists[num_pl][i][0], self.posting_lists[num_pl][i][1]))
+
+        for i in range(0, len(self.posting_lists[num_pl])-1, 2):
+            num_bytes[0] = self.bytes_needed(self.posting_lists[num_pl][i][0])
+            print(self.posting_lists[num_pl][i][0])
+            print(self.bytes_needed(self.posting_lists[num_pl][i][0]))
+            num_bytes[1] = self.bytes_needed(self.posting_lists[num_pl][i][1])
+            num_bytes[2] = self.bytes_needed(self.posting_lists[num_pl][i+1][0])
+            num_bytes[3] = self.bytes_needed(self.posting_lists[num_pl][i+1][1])
+        print(num_bytes)
+        first_byte |= num_bytes[0] >> 3
+        first_byte |= num_bytes[1] >> 2
+        first_byte |= num_bytes[2] >> 1
+        first_byte |= num_bytes[3] >> 0
+
+        #pl_buff += bytes_def[num_bytes[0]-1] + bytes_def[num_bytes[1]-1] + bytes_def[num_bytes[2]-1] + bytes_def[num_bytes[3]-1]
+
+
+    def bytes_needed(self, num):
+        if num == 0:
+            return 1
+        return int(log(num, 256)) + 1
+
 
     """ Help function, prints the dictionary"""
 
@@ -243,4 +282,4 @@ class MiniIndexWriter:
         self.string = ""
 
 
-
+m = MiniIndexWriter("reviews//Books10.txt", "dir")
