@@ -70,6 +70,7 @@ class IndexReader:
             return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
+        self.uncompress_pl(letter, pl_offset, pl_next_offset)
         if pl_offset == -1:
             return 0
         return pl_next_offset - pl_offset
@@ -160,8 +161,39 @@ class IndexReader:
             pl_next_offset = size // 8
         return pl_offset, pl_next_offset, letter
 
+    def uncompress_pl(self, pl, pl_offset, pl_next_offset):
+        with open(f"{self.dir}//pl_{pl}.bin", "br") as pl_file:
+            pl_buff = b''
+            pl_file.seek(pl_offset)
+            pl_buff = pl_file.read(pl_next_offset-pl_offset)
+            print(pl_buff)
+        i = 0
+        num_bytes = [1, 1, 1, 1]
+        posting_list = []
+        while i < len(pl_buff):
+            #print()
+            byte = pl_buff[i] #int.from_bytes(pl_buff[i].to_bytes(1, byteorder='little'), byteorder="little")
+            #print(byte)
+            num_bytes[0] = (byte & 192) >> 6
+            num_bytes[1] = (byte & 48) >> 4
+            num_bytes[2] = (byte & 12) >> 2
+            num_bytes[3] = byte & 3
+            print(num_bytes)
+            i += 1
+            prev_byte = i
+            for num in num_bytes:
+                print(f"prev {prev_byte} num {num}")
+                print(pl_buff[i])
+                print(int.from_bytes(pl_buff[1:1], byteorder="little"))
+                posting_list.append(int.from_bytes(pl_buff[prev_byte:prev_byte+num], byteorder="little"))
+                prev_byte += num
+            i += 4
+        print(posting_list)
+
     def normalize(self, token):
         token = token.lower()
         token = token.strip()
         return token
 
+r = IndexReader("dir")
+print(r.getTokenFrequency("a"))
