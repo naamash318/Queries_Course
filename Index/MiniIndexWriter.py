@@ -222,9 +222,10 @@ class MiniIndexWriter:
 
 
     def bytes_needed(self, num):
-        if num == 0:
-            return 1
-        return int(log(num, 256)) + 1
+        # if num == 0:
+        #     return 1
+        # return int(log(num, 256)) + 1
+        return (num.bit_length() + 7) // 8
 
 
     """ Help function, prints the dictionary"""
@@ -280,6 +281,70 @@ class MiniIndexWriter:
         self.posting_lists.clear()
         self.dictionary.clear()
         self.string = ""
+
+    def get_word_and_postList(id):
+        # get the word
+        word_loc = self.dictionary[id][0]
+        next_word_loc = self.dictionary[id+1][0]
+        word = self.string[word_loc: next_word_loc]
+
+        # get the post List
+        pl_pointer = self.dictionary[id][1]
+        next_pl_pointer = self.dictionary[id+1][1]
+        letter = convert_char_int(word[0])
+
+        if next_pl_pointer > pl_pointer:
+            pl = self.posting_lists[letter][pl_pointer:next_pl_pointer]
+        else:   # the last post list on the file
+            pl = self.posting_lists[letter][pl_pointer:]
+
+        return word, pl
+
+    def compress_and_write(self):
+        ch =0
+        pl_file = open(f"{dir}//pl_{ch}.bin", "bw")
+        for i in range(len(self.dictionary)):
+            word, pl = self.get_word_and_postList(i)
+            compressed_pl = self.compress_pl(pl)
+
+            curr_ch = self.convert_char_int(word[0])
+            if curr_ch != ch:
+                pl_file.close()
+                ch = curr_ch
+                pl_file = open(f"{dir}//pl_{ch}.bin", "bw")
+
+            pl_file.write(compressed_pl)
+
+        pl_file.close()
+
+
+    def compress_pl(self, pl):
+        diff_pl = []
+        curr_t_buff =b''
+        pl_buff = b''
+
+        diff_pl.append(pl[0])
+        for i in range(len(pl)-1):
+            diff = pl[i+1][0]-pl[i][0]
+            diff_pl.append((diff, pl[i+1][1]))
+
+        for i in range(0,len(pl),2):
+
+            order = 0
+            # if i+1 >= len(pl):
+            #     curr_t = (pl_diff[i][0], pl_diff[i][1], 0, pl_diff[i + 1][1])
+            curr_t = (diff_pl[i][0],diff_pl[i][1],diff_pl[i+1][0],diff_pl[i+1][1])
+
+            for v in curr_t:
+                bytes_need = bytes_needed(v)
+                order >>= 2
+                order |= bytes_need
+                curr_t_buff += v.to_bytes(bytes_need, byteorder='little')
+
+            pl_buff += order.to_bytes(1, byteorder='little')
+            pl_buff += curr_t_buff
+
+        return pl_buff
 
 
 m = MiniIndexWriter("reviews//Books10.txt", "dir")

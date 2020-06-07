@@ -39,7 +39,7 @@ class IndexWriter:
                 if count < 1:
                     break;
 
-    def mergeIndex(self, dict1, dict2, string1, string):
+    def mergeIndex(self, dict1, dict2, string1, string2):
         string = ''
         flag = 0
         i = 0
@@ -51,7 +51,7 @@ class IndexWriter:
             word_loc2 = struct.unpack("i", dict2[j:j+4])[0]
             word_loc2_next = struct.unpack("i", dict2[j+8:j+12])[0]
             word1 = string1[word_loc1: word_loc1_next]
-            word2 = string1[word_loc2: word_loc2_next]
+            word2 = string2[word_loc2: word_loc2_next]
             if word1 < word2:
                 string += word1
                 i += 8
@@ -81,6 +81,8 @@ class IndexWriter:
         self.posting_list.append()
 
     def write_pl(pl):
+
+    def term_info(self,dict):
 
     """Delete all index files by removing the given directory"""
     def removeIndex(self, dir):
