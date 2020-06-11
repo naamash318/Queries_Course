@@ -1,88 +1,237 @@
+import glob
+
 import MiniIndexWriter
 import struct
+import os
+import shutil
+import compress
+size_of_dic_value = 8   # 2 integers
+
+def to_char(char):
+    if char <= '9':
+        return ord(char) - 48
+    if char >= 'a':
+        return ord(char) - 87
+
+def remove_state(dir, state):
+    dir_list = glob.glob(f"{dir}_l{state}*")
+    print(dir_list)
+    for d in dir_list:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+
+class Index:
+
+    curr_letter = '-1'
+    curr_pointer = 0
+    next_pointer = size_of_dic_value
+    curr_pl_file = None
+
+    def __init__(self, path):
+        self.path = path
+
+        with open(f"{path}//dict_file.bin", "br") as dict_file:
+            self.dictionary = dict_file.read()
+        with open(f"{path}//string_file.txt") as string_file:
+            self.string = string_file.read()
+
+    def get_curr_word_and_pl(self):
+
+        if self.curr_pointer == len(self.dictionary):
+            return -1
+        word_loc,pl_offset = struct.unpack("ii", self.dictionary[self.curr_pointer:self.curr_pointer + size_of_dic_value])
+        if self.next_pointer < len(self.dictionary):
+            next_word_loc, next_pl_offset = struct.unpack("ii", self.dictionary[self.next_pointer:self.next_pointer + size_of_dic_value])
+            curr_word = self.string[word_loc:next_word_loc]
+            length = next_pl_offset - pl_offset
+        else:   #last term
+            curr_word = self.string[word_loc:]
+            length = -1
+
+        if curr_word[0] != self.curr_letter:
+            if self.curr_pl_file != None:
+                self.curr_pl_file.close()
+            self.curr_letter = curr_word[0]
+            self.curr_pl_file = open(f"{self.path}//pl_{to_char(self.curr_letter)}.bin", "br")
+        if length <= 0:
+            curr_pl = self.curr_pl_file.read()   #read till end of file
+        else:
+            curr_pl = self.curr_pl_file.read(length)
+
+        self.curr_pointer = self.next_pointer
+        self.next_pointer += size_of_dic_value
+
+        return curr_word, curr_pl
+
 
 class IndexWriter:
-    maxBytes = 100*(2**20)
+    maxBytes = 10000000
+    #maxBytes = 100*(2**20)
     posting_list = []
-    mini_pl = b''
-    state = 0
-    path1 = ""
-    path2 = ""
+    main = False
+
 
     """Given product review data, creates an on disk index inputFile is the path to the file containing the review data dir is the directory in which all index files will be created
      if the directory does not exist, it should be created"""
     def write(self, inputFile, dir):
+
+        indexes_count = self.build_mini_indexes(inputFile, dir)
+        if indexes_count> 1:
+            self.merge(dir, indexes_count)
+
+    def build_mini_indexes(self, inputFile, dir):
+        # building mini indexes
+        reviews_count = 0
+        text = ""
+        file_size = os.stat(inputFile).st_size
+
         with open(inputFile) as text_file:
             count = 0
-            while True:
+            if file_size < self.maxBytes:
                 text = text_file.read(self.maxBytes)
+                index = MiniIndexWriter.MiniIndexWriter(text, f"{dir}", reviews_count)
+                self.main = True
+                return 1
+
+            while True:
+                text += text_file.read(self.maxBytes)
                 if text == '':
                     break
+
+                end = None
+                left = ""
+                if text_file.tell() != file_size:    # the last review might not completely read so will be send in the next time
+                    end = text.rfind("product/productId: ")
+                    left = text[end:]
+
+                index = MiniIndexWriter.MiniIndexWriter(text[:end], f"{dir}_l0_dir{count}", reviews_count)
+                text = left
+                reviews_count = index.reviews_counter
                 count += 1
-                index = MiniIndexWriter.MiniIndexWriter(text, f"{dir}//l0//dir{count}")
-            while True:
-                self.state = 0
-                for i in range(0, count, 2):
-                    self.path1 = f"{dir}//l{self.state}//dir{i}"
-                    self.path2 = f"{dir}//l{self.state}//dir{i+1}"
-                    with open(f"{self.path1}//dict_file.bin") as dictionary1:
-                        dict1 = dictionary1.read()
-                    with open(f"{self.path2}/dict_file.bin") as dictionary2:
-                        dict2 = dictionary2.read()
-                    with open(f"{self.path1}//string_file.txt") as string_file1:
-                        string1 = string_file1.read()
-                    with open(f"{self.path2}//string_file.txt") as string_file2:
-                        string2 = string_file2.read()
-                    self.mergeIndex(dict1, dict2, string1, string2)
-                count = count//2
-                self.state += 1
-                if count < 1:
-                    break;
+        return count
 
-    def mergeIndex(self, dict1, dict2, string1, string2):
+    def merge(self, dir, count):
+        # merging indexes
+        state = 0
+        main = False
+        while self.main != True:
+
+            for i in range(0, count, 2):
+                path1 = f"{dir}_l{state}_dir{i}"
+                path2 = f"{dir}_l{state}_dir{i+1}"
+                if i == count - 1:
+                    path2 = path1
+                    path1 = path
+                    count = count -1
+
+                path = f"{dir}_l{state+1}_dir{(i+1)//2}"
+                if count <= 2:
+                    path = dir
+                    self.main = True
+                    print("the main one")
+
+                print(f"state {state} merging indexes {i} , {i + 1} path1: {path1} path2:{path2} merged: {path}")
+                self.mergeIndex(path, path1, path2)
+
+
+            count = count // 2
+            remove_state(dir, state)
+            state += 1
+
+
+
+    def mergeIndex(self, path, path1, path2):
+
         string = ''
-        flag = 0
-        i = 0
-        j =0
-        letter = ""
-        while flag == 0:
-            word_loc1 = struct.unpack("i", dict1[i:i+4])[0]
-            word_loc1_next = struct.unpack("i", dict1[i+8:i+12])[0]
-            word_loc2 = struct.unpack("i", dict2[j:j+4])[0]
-            word_loc2_next = struct.unpack("i", dict2[j+8:j+12])[0]
-            word1 = string1[word_loc1: word_loc1_next]
-            word2 = string2[word_loc2: word_loc2_next]
-            if word1 < word2:
-                string += word1
-                i += 8
-                self.mragePl(word1, letter, 1)
-                letter = word1 [0]
-            elif word2 < word1:
-                letter = word2 [0]
-                string += word2
-            else
+        index1 = Index(path1)
+        index2 = Index(path2)
+        letter = '0'
+        dic = []
+        term1 = index1.get_curr_word_and_pl()
+        term2 = index2.get_curr_word_and_pl()
 
-            if word_loc1_next == "":
-                flag = 1
-            if word_loc2_next == "":
-                flag = 2
+        try:
+            os.mkdir(path)
+        except OSError as error:
+            pass
+
+        pl_file = open(f"{path}//pl_{to_char(letter)}.bin", "bw")
+
+        while term1 != -1 or term2 != -1:
+
+            if term1 == -1:
+                add_term = term2
+                term2 = index2.get_curr_word_and_pl()
+            elif term2 == -1:
+                add_term = term1
+                term1 = index1.get_curr_word_and_pl()
+            elif term1[0] == term2[0]:
+                print(f"term : {term1[0]}")
+
+                merged_pl = self.merge_pl(term1[1], term2[1])
+                add_term = (term1[0],merged_pl)
+                term1 = index1.get_curr_word_and_pl()
+                term2 = index2.get_curr_word_and_pl()
+            elif term1[0] < term2[0]:
+                add_term = term1
+                term1 = index1.get_curr_word_and_pl()
+            else:   # term1[0] > term2[0]:
+                add_term = term2
+                term2 = index2.get_curr_word_and_pl()
+
+            if add_term[0][0] != letter:
+                pl_file.close()
+                letter = add_term[0][0]
+                pl_file = open(f"{path}//pl_{to_char(letter)}.bin", "bw")
+
+            dic.append((len(string), pl_file.tell()))
+            string += add_term[0]
+            pl_file.write(add_term[1])
+
+        self.write_to_file(path,dic,string)
 
 
-    def mragePl(self, word, pl, word_num):
-        letter = word [0]
-        if word [0] != pl:
-            self.write_pl(pl)
-            self.posting_list.clear()
-            if word [0] >= 'a':
-                letter = ord(word [0]) - 87
-            if word_num == 1:
-                with open(f"{self.path1}//pl_{letter}.bin") as posting_l:
-                    mini_pl = posting_l.read()
-        self.posting_list.append()
+    def write_to_file(self,path,dic,string):
+        dict_buff = bytes(0)
+        for i in range(0, len(dic)):
+            dict_buff += struct.pack("ii", *dic[i])
+        with open(f"{path}//dict_file.bin", "bw") as dict_file:
+            dict_file.write(dict_buff)
 
-    def write_pl(pl):
+        with open(f"{path}//string_file.txt", "w") as str_file:
+            str_file.write(string)
 
-    def term_info(self,dict):
+
+    def merge_pl(self,pl1,pl2):
+        pl_buff = b''
+
+        un_pl1 = compress.uncompress_pl(pl1)
+        un_pl2 = compress.uncompress_pl(pl2)
+
+        print(f" befoe uncompress : pl1: {pl1} pl2: {pl2}")
+        print(f" after uncompress : pl1: {un_pl1} pl2: {un_pl2}")
+        #find last review id for update diffs
+        review_num = 0
+        for i in range(0,len(un_pl1), 2):
+            review_num += un_pl1[i]
+        temp = un_pl2[0]
+        un_pl2[0] = un_pl2[0] - review_num
+
+        #print(temp)
+        merged = compress.compress_pl(un_pl1 + un_pl2, un_pl1, un_pl2)
+        #print(merged)
+        pl_buff += pl1 + bytes(2) + pl2  # TODO:
+        return merged
+
+
 
     """Delete all index files by removing the given directory"""
     def removeIndex(self, dir):
+        return
+
+s = IndexWriter()
+s.write("reviews//Books1000.txt", "index100")
+
+
+
