@@ -6,16 +6,18 @@ import re
 import os
 import struct
 import shutil
+import compress
 from math import log
 
-
+left = ""
 class MiniIndexWriter:
-    reviews_counter = 0
+
     reviews_buf = bytes(0)
     tokens_list = []
     posting_lists = []
     dictionary = []
     string = ""
+
 
     """------------------------------------------------------------------------------------------------------
     Creates an Index on the disk.
@@ -24,11 +26,16 @@ class MiniIndexWriter:
             dir:        The directory in which all index files will be created, if the directory does not exist, it should be created
     ---------------------------------------------------------------------------------------------------------"""
 
-    def __init__(self, inputFile, dir):
-        with open(inputFile) as text_file:
-            text = text_file.read()
-        #text = inputFile
+    def __init__(self, inputFile, dir, review_count):
+        # with open(inputFile) as text_file:
+        #     text = text_file.read()
+        text = inputFile
+        # print(text)
+        # print(self.dictionary)
+        # print(self.posting_lists)
+        # print(self.string)
         start_review = text.find("product/productId: ")
+        self.reviews_counter = review_count
         while start_review != -1:
             end_review = text.find("product/productId: ", start_review + 1)
             start_text = text.find("review/text: ", start_review + 1)
@@ -38,6 +45,8 @@ class MiniIndexWriter:
             self.reviews_counter += 1
             self.add_to_list(text[start_text + 13:end_review])
             start_review = end_review
+
+
 
         self.tokens_list.sort()
         self.crete_empty_pl()
@@ -111,7 +120,7 @@ class MiniIndexWriter:
         review_tokens = self.normalize(review)
         for token in review_tokens:
             if token != '':
-                self.tokens_list.append((token, self.reviews_counter))
+                self.tokens_list.append((f"{token}\n", self.reviews_counter))
 
     """-----------------------------------------------------------------------------------------------------------------
     Creating the dictionary and the posting lists.
@@ -127,7 +136,6 @@ class MiniIndexWriter:
         count_tokens = 1
         loc_string = 0
         loc_posting_list = 0
-
         for i in range(len(self.tokens_list)):
             ch = self.convert_char_int(self.tokens_list[i][0][0])
             if i == len(self.tokens_list) - 1:
@@ -146,7 +154,7 @@ class MiniIndexWriter:
                 self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
                 self.string += self.tokens_list[i][0]
                 self.dictionary.append((loc_string, loc_posting_list))
-                if i != 0 and self.tokens_list[i][0][0] != self.tokens_list[i + 1][0][0]:
+                if self.tokens_list[i][0][0] != self.tokens_list[i + 1][0][0]:
                     loc_posting_list = 0
                 else:
                     loc_posting_list = len(self.posting_lists[ch])
@@ -171,62 +179,115 @@ class MiniIndexWriter:
         with open(f"{dir}//string_file.txt", "w") as str_file:
             str_file.write(self.string)
 
+
+        self.send_compress_pl(dir)
         # write dictionary
         with open(f"{dir}//dict_file.bin", "bw") as dict_file:
             dict_buff = bytes(0)
+            #print(self.dictionary)
             for i in range(0, len(self.dictionary)):
                 dict_buff += struct.pack("ii", *self.dictionary[i])
             dict_file.write(dict_buff)
 
-        # write 36 files of posting lists
-        for i in range(len(self.posting_lists)):
-            self.compress_pl(i)
-            with open(f"{dir}//pl_{i}.bin", "bw") as pl_file:
-                pl_buff = bytes(0)
-                for post in self.posting_lists[i]:
-                    pl_buff += struct.pack("ii", *post)
-                pl_file.write(pl_buff)
+
+        self.reviews_buf = bytes(0)
+        self.tokens_list.clear()
+        self.posting_lists.clear()
+        self.dictionary.clear()
+        self.string = ""
+
 
         # write reviews file
         with open(f"{dir}//reviews.bin", "bw") as reviews_file:
             reviews_file.write(self.reviews_buf)
 
 
-    def compress_pl(self, num_pl):
-        num_bytes = [0,0,0,0]
-        bytes_def = ["00", "01", "10", "11"]
-        pl_buff = ""
-        first_byte = '0'
-        num_pl = 10
-        print(self.posting_lists[num_pl])
-        print(self.dictionary)
-        print(self.string)
-        print(self.string.find('a'))
-        for i in range(len(self.posting_lists[num_pl])-1):
-            self.posting_lists[num_pl][i] = ((self.posting_lists[num_pl][i+1][0] - self.posting_lists[num_pl][i][0], self.posting_lists[num_pl][i][1]))
-
-        for i in range(0, len(self.posting_lists[num_pl])-1, 2):
-            num_bytes[0] = self.bytes_needed(self.posting_lists[num_pl][i][0])
-            print(self.posting_lists[num_pl][i][0])
-            print(self.bytes_needed(self.posting_lists[num_pl][i][0]))
-            num_bytes[1] = self.bytes_needed(self.posting_lists[num_pl][i][1])
-            num_bytes[2] = self.bytes_needed(self.posting_lists[num_pl][i+1][0])
-            num_bytes[3] = self.bytes_needed(self.posting_lists[num_pl][i+1][1])
-        print(num_bytes)
-        first_byte |= num_bytes[0] >> 3
-        first_byte |= num_bytes[1] >> 2
-        first_byte |= num_bytes[2] >> 1
-        first_byte |= num_bytes[3] >> 0
-
-        #pl_buff += bytes_def[num_bytes[0]-1] + bytes_def[num_bytes[1]-1] + bytes_def[num_bytes[2]-1] + bytes_def[num_bytes[3]-1]
+    def send_compress_pl(self, dir):
+        buff_bytes = b''
+        for i in range(len(self.dictionary)):
+            loc = self.dictionary[i][1]
+            pl = self.convert_char_int(self.string[self.dictionary[i][0]])
+            if i + 1 == len(self.dictionary) or self.string[self.dictionary[i][0]] != self.string[self.dictionary[i + 1][0]]:
+                next_loc = len(self.posting_lists[pl])
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc, i )
+                self.write_pl(buff_bytes, pl, dir)
+                buff_bytes = b''
+            else:
+                next_loc = self.dictionary[i + 1][1]
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc, i, dir)
 
 
-    def bytes_needed(self, num):
-        # if num == 0:
-        #     return 1
-        # return int(log(num, 256)) + 1
-        return (num.bit_length() + 7) // 8
 
+    def compress_pl(self, pl, loc, next_loc, t):
+
+        pl_diffs = [self.posting_lists[pl][loc][0], self.posting_lists[pl][loc][1]]
+        for i in range(loc, next_loc-1):
+            diff = self.posting_lists[pl][i+1][0] - self.posting_lists[pl][i][0]
+            pl_diffs.append(diff)
+            pl_diffs.append(self.posting_lists[pl][i+1][1])
+        com = compress.compress_pl(pl_diffs)
+        uncom = compress.uncompress_pl(com)
+
+        if pl == 0:
+            print ("-----------------------------------------------------------")
+            print(f" term is : {self.string[self.dictionary[t][0]:self.dictionary[t+1][0]]}")
+            print(f"befor compress: {self.posting_lists[pl][loc: next_loc]}")
+            print(f"after diff: {pl_diffs}")
+            print(f"after compress: {com}")
+            print(f"after uncompress: {uncom}")
+
+        return compress.compress_pl(pl_diffs)
+
+
+    #     for i in range(loc, next_loc, 2):
+    #         if i == next_loc-1:
+    #             first_byte, num_bytes = self.first_byte(i, pl, 2)
+    #             buff_bytes += first_byte.to_bytes(1, byteorder='little')
+    #             buff_bytes += self.bytes_pl(i, pl, num_bytes, 2)
+    #         else:
+    #             first_byte, num_bytes = self.first_byte(i, pl, 4)
+    #             buff_bytes += first_byte.to_bytes(1, byteorder='little')
+    #             buff_bytes += self.bytes_pl(i, pl, num_bytes, 4)
+    #     return buff_bytes
+    #
+    # def first_byte(self, loc, pl, flag):
+    #     num_bytes = [1, 1, 1, 1]
+    #     first_byte = 0
+    #     num_bytes[0] = (self.posting_lists[pl][loc][0].bit_length() + 7) // 8
+    #     num_bytes[1] = (self.posting_lists[pl][loc][1].bit_length() + 7) // 8
+    #     if flag != 2:
+    #         num_bytes[2] = (self.posting_lists[pl][loc + 1][0].bit_length() + 7) // 8
+    #         num_bytes[3] = (self.posting_lists[pl][loc + 1][1].bit_length() + 7) // 8
+    #     for i in num_bytes:
+    #         first_byte <<= 2
+    #         first_byte |= i-1
+    #
+    #     if first_byte == -4:
+    #         print(self.posting_lists[pl][loc][0])
+    #         print(self.posting_lists[pl][loc][1])
+    #         print(self.posting_lists[pl][loc+1][0])
+    #         print(self.posting_lists[pl][loc+1][1])
+
+
+        # print(f"first_byte is {first_byte}")
+        # print(num_bytes)
+        return first_byte, num_bytes
+
+    def bytes_pl(self, loc, pl, num_bytes, flag):
+        buf = b''
+        buf += self.posting_lists[pl][loc][0].to_bytes(num_bytes[0], byteorder='little')
+        buf += self.posting_lists[pl][loc][1].to_bytes(num_bytes[1], byteorder='little')
+        if flag != 2:
+            buf += self.posting_lists[pl][loc+1][0].to_bytes(num_bytes[2], byteorder='little')
+            buf += self.posting_lists[pl][loc+1][1].to_bytes(num_bytes[3], byteorder='little')
+        return buf
+
+    def write_pl(self, buff, pl, dir):
+
+        with open(f"{dir}//pl_{pl}.bin", "bw") as pl_file:
+            pl_file.write(buff)
 
     """ Help function, prints the dictionary"""
 
@@ -282,69 +343,4 @@ class MiniIndexWriter:
         self.dictionary.clear()
         self.string = ""
 
-    def get_word_and_postList(id):
-        # get the word
-        word_loc = self.dictionary[id][0]
-        next_word_loc = self.dictionary[id+1][0]
-        word = self.string[word_loc: next_word_loc]
-
-        # get the post List
-        pl_pointer = self.dictionary[id][1]
-        next_pl_pointer = self.dictionary[id+1][1]
-        letter = convert_char_int(word[0])
-
-        if next_pl_pointer > pl_pointer:
-            pl = self.posting_lists[letter][pl_pointer:next_pl_pointer]
-        else:   # the last post list on the file
-            pl = self.posting_lists[letter][pl_pointer:]
-
-        return word, pl
-
-    def compress_and_write(self):
-        ch =0
-        pl_file = open(f"{dir}//pl_{ch}.bin", "bw")
-        for i in range(len(self.dictionary)):
-            word, pl = self.get_word_and_postList(i)
-            compressed_pl = self.compress_pl(pl)
-
-            curr_ch = self.convert_char_int(word[0])
-            if curr_ch != ch:
-                pl_file.close()
-                ch = curr_ch
-                pl_file = open(f"{dir}//pl_{ch}.bin", "bw")
-
-            pl_file.write(compressed_pl)
-
-        pl_file.close()
-
-
-    def compress_pl(self, pl):
-        diff_pl = []
-        curr_t_buff =b''
-        pl_buff = b''
-
-        diff_pl.append(pl[0])
-        for i in range(len(pl)-1):
-            diff = pl[i+1][0]-pl[i][0]
-            diff_pl.append((diff, pl[i+1][1]))
-
-        for i in range(0,len(pl),2):
-
-            order = 0
-            # if i+1 >= len(pl):
-            #     curr_t = (pl_diff[i][0], pl_diff[i][1], 0, pl_diff[i + 1][1])
-            curr_t = (diff_pl[i][0],diff_pl[i][1],diff_pl[i+1][0],diff_pl[i+1][1])
-
-            for v in curr_t:
-                bytes_need = bytes_needed(v)
-                order >>= 2
-                order |= bytes_need
-                curr_t_buff += v.to_bytes(bytes_need, byteorder='little')
-
-            pl_buff += order.to_bytes(1, byteorder='little')
-            pl_buff += curr_t_buff
-
-        return pl_buff
-
-
-m = MiniIndexWriter("reviews//Books10.txt", "dir")
+#m = MiniIndexWriter("reviews//Books1000.txt", "mini_dir_100", 0)
