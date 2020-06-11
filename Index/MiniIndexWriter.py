@@ -9,7 +9,7 @@ import shutil
 import compress
 from math import log
 
-left = ""
+
 class MiniIndexWriter:
 
     reviews_buf = bytes(0)
@@ -120,7 +120,7 @@ class MiniIndexWriter:
         review_tokens = self.normalize(review)
         for token in review_tokens:
             if token != '':
-                self.tokens_list.append((f"{token}\n", self.reviews_counter))
+                self.tokens_list.append((token, self.reviews_counter))
 
     """-----------------------------------------------------------------------------------------------------------------
     Creating the dictionary and the posting lists.
@@ -201,7 +201,9 @@ class MiniIndexWriter:
         with open(f"{dir}//reviews.bin", "bw") as reviews_file:
             reviews_file.write(self.reviews_buf)
 
-
+'''-------------------------------------------------------------------------------------------------------------------------------------------------- 
+That's how I did it with copression : need to review it!!!
+-----------------------------------------------------------------------------------------------------------------------------------------------------
     def send_compress_pl(self, dir):
         buff_bytes = b''
         for i in range(len(self.dictionary)):
@@ -239,36 +241,52 @@ class MiniIndexWriter:
             print(f"after uncompress: {uncom}")
 
         return compress.compress_pl(pl_diffs)
+------------------------------------------------------------------------------------------------------------------------------------------------'''
+    
+	def send_compress_pl(self, dir):
+        buff_bytes = b''
+        for i in range(len(self.dictionary)):
+            loc = self.dictionary[i][1]
+            pl = self.convert_char_int(self.string[self.dictionary[i][0]])
+            if i + 1 == len(self.dictionary) or self.string[self.dictionary[i][0]] != self.string[self.dictionary[i + 1][0]]:
+                next_loc = len(self.posting_lists[pl])
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc)
+                self.write_pl(buff_bytes, pl, dir)
+                buff_bytes = b''
+            else:
+                next_loc = self.dictionary[i + 1][1]
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc)
 
 
-    #     for i in range(loc, next_loc, 2):
-    #         if i == next_loc-1:
-    #             first_byte, num_bytes = self.first_byte(i, pl, 2)
-    #             buff_bytes += first_byte.to_bytes(1, byteorder='little')
-    #             buff_bytes += self.bytes_pl(i, pl, num_bytes, 2)
-    #         else:
-    #             first_byte, num_bytes = self.first_byte(i, pl, 4)
-    #             buff_bytes += first_byte.to_bytes(1, byteorder='little')
-    #             buff_bytes += self.bytes_pl(i, pl, num_bytes, 4)
-    #     return buff_bytes
-    #
-    # def first_byte(self, loc, pl, flag):
-    #     num_bytes = [1, 1, 1, 1]
-    #     first_byte = 0
-    #     num_bytes[0] = (self.posting_lists[pl][loc][0].bit_length() + 7) // 8
-    #     num_bytes[1] = (self.posting_lists[pl][loc][1].bit_length() + 7) // 8
-    #     if flag != 2:
-    #         num_bytes[2] = (self.posting_lists[pl][loc + 1][0].bit_length() + 7) // 8
-    #         num_bytes[3] = (self.posting_lists[pl][loc + 1][1].bit_length() + 7) // 8
-    #     for i in num_bytes:
-    #         first_byte <<= 2
-    #         first_byte |= i-1
-    #
-    #     if first_byte == -4:
-    #         print(self.posting_lists[pl][loc][0])
-    #         print(self.posting_lists[pl][loc][1])
-    #         print(self.posting_lists[pl][loc+1][0])
-    #         print(self.posting_lists[pl][loc+1][1])
+
+    def compress_pl(self, pl, loc, next_loc):
+        buff_bytes = b''
+        for i in range(loc, next_loc-1):
+            self.posting_lists[pl][i] = (self.posting_lists[pl][i+1][0] - self.posting_lists[pl][i][0], self.posting_lists[pl][i][1])
+        for i in range(loc, next_loc, 2):
+            if i == next_loc-1:
+                first_byte, num_bytes = self.first_byte(i, pl, 2)
+                buff_bytes += first_byte.to_bytes(1, byteorder='little')
+                buff_bytes += self.bytes_pl(i, pl, num_bytes, 2)
+            else:
+                first_byte, num_bytes = self.first_byte(i, pl, 4)
+                buff_bytes += first_byte.to_bytes(1, byteorder='little')
+                buff_bytes += self.bytes_pl(i, pl, num_bytes, 4)
+        return buff_bytes
+
+    def first_byte(self, loc, pl, flag):
+        num_bytes = [1, 1, 1, 1]
+        first_byte = 0
+        num_bytes[0] = (self.posting_lists[pl][loc][0].bit_length() + 7) // 8
+        num_bytes[1] = (self.posting_lists[pl][loc][1].bit_length() + 7) // 8
+        if flag != 2:
+            num_bytes[2] = (self.posting_lists[pl][loc + 1][0].bit_length() + 7) // 8
+            num_bytes[3] = (self.posting_lists[pl][loc + 1][1].bit_length() + 7) // 8
+        for i in num_bytes:
+            first_byte <<= 2
+            first_byte |= i-1
 
 
         # print(f"first_byte is {first_byte}")
