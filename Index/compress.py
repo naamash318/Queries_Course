@@ -2,7 +2,7 @@ def uncompress_pl(pl):
     i = 0
     t = []
     while i < len(pl):
-        first_byte = int.from_bytes(pl[i:i], byteorder="little")
+        first_byte = int.from_bytes(pl[i:i+1], byteorder="little")
         order = get_order(first_byte)
         #print(f" the order is {order}")
         i += 1
@@ -13,7 +13,7 @@ def uncompress_pl(pl):
     #print(t)
     return t
 
-def compress_pl(pl):
+def compress_pl(pl , t1, t2):
 
     com_pl = b''
     left = len(pl) % 4
@@ -21,6 +21,7 @@ def compress_pl(pl):
         for i in range(0, len(pl) - left , 4):
             t = (pl[i], pl[i+1], pl[i+2], pl[i+3])
             order = get_order_from_tuple(t)
+           # print(f"order is {order} tuple is {t}")
             #print(order)
             if order[0] == 0 or order[1] == 0 or order[2] == 0 or order[3] == 0:
                 print(f"error tuple is {t} in pl {pl}")
@@ -39,6 +40,7 @@ def compress_pl(pl):
             print("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     except:
         print(f"--------------------error tuple is {t} in pl {pl}---------------------------")
+
         #print(f"pl1: {t1} pl2:{t2}")
         exit(-1)
 
