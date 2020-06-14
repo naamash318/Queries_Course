@@ -20,14 +20,19 @@
       <path>
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="BRANCH:master" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:changes" type="e8cecc67:BranchNodeDescriptor" />
       </path>
     </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02c16b67-8125-4983-b245-10369bca14c3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reviews/Books1000.txt" beforeDir="false" afterPath="$PROJECT_DIR$/reviews/Books1000.txt" afterDir="false" />
+    </list>
+    <list id="98172316-f3a4-49ee-85ac-5317a9b3dbab" name="Revert &quot;changes&quot;" comment="Revert &quot;changes&quot;&#10;&#10;This reverts commit 9425d0fb">
+      <change beforePath="$PROJECT_DIR$/IndexReader.py" beforeDir="false" afterPath="$PROJECT_DIR$/IndexReader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiniIndexWriter.py" beforeDir="false" afterPath="$PROJECT_DIR$/MiniIndexWriter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SlowIndexWriter.py" beforeDir="false" afterPath="$PROJECT_DIR$/SlowIndexWriter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -203,11 +208,11 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.SlowIndexWriter" />
+      <item itemvalue="Python.try" />
+      <item itemvalue="Python.try (1)" />
       <item itemvalue="Python.IndexReader" />
       <item itemvalue="Python.MiniIndexWriter" />
-      <item itemvalue="Python.SlowIndexWriter" />
-      <item itemvalue="Python.try (1)" />
-      <item itemvalue="Python.try" />
       <item itemvalue="Python tests.Unittests in Tester.py" />
     </list>
     <recent_temporary>
@@ -273,7 +278,13 @@
       <option name="presentableId" value="LOCAL‎00007" />
       <updated>1592120574730</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL‎00008" summary="changes">
+      <created>1592122527397</created>
+      <option name="number" value="LOCAL‎00008" />
+      <option name="presentableId" value="LOCAL‎00008" />
+      <updated>1592122527397</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -287,7 +298,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="master" />
+                        <option value="changes" />
                       </list>
                     </value>
                   </entry>
@@ -321,6 +332,7 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="true" />
     <MESSAGE value="Finish" />
     <MESSAGE value="finally changes" />
     <MESSAGE value="IndexWriter" />
@@ -346,6 +358,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="225" key="#com.intellij.ide.macro.MacrosDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589396096734" />
+    <state x="526" y="86" key="CommitChangelistDialog2" timestamp="1592122665567">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="526" y="86" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1592122665567" />
     <state x="92" y="92" width="1736" height="856" key="DiffContextDialog" timestamp="1592121228358">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -386,6 +402,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state x="633" y="222" key="RollbackChangesDialog" timestamp="1592122576378">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="633" y="222" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1592122576378" />
     <state x="461" y="165" key="SettingsEditor" timestamp="1589981342989">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -394,10 +414,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="807" y="434" key="VCS.ChangelistChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1591545954821" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1592120606464">
+    <state x="846" y="435" key="VCS.EditChangelistDialog" timestamp="1592122624545">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1592120606464" />
+    <state x="846" y="435" key="VCS.EditChangelistDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1592122624545" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1592122533973">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1592122533973" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
