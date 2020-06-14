@@ -1,10 +1,11 @@
 import glob
-
+from math import log
 import MiniIndexWriter
 import struct
 import os
 import shutil
 import compress
+from datetime import datetime
 size_of_dic_value = 8   # 2 integers
 
 def to_char(char):
@@ -66,7 +67,7 @@ class Index:
 
 
 class IndexWriter:
-    maxBytes = 10000000
+    maxBytes = 2**29
     #maxBytes = 100*(2**20)
     posting_list = []
     main = False
@@ -77,7 +78,7 @@ class IndexWriter:
     def write(self, inputFile, dir):
 
         indexes_count = self.build_mini_indexes(inputFile, dir)
-        if indexes_count> 1:
+        if indexes_count > 1:
             self.merge(dir, indexes_count)
 
     def build_mini_indexes(self, inputFile, dir):
@@ -91,7 +92,6 @@ class IndexWriter:
             if file_size < self.maxBytes:
                 text = text_file.read(self.maxBytes)
                 index = MiniIndexWriter.MiniIndexWriter(text, f"{dir}", reviews_count)
-                self.main = True
                 return 1
 
             while True:
@@ -104,8 +104,9 @@ class IndexWriter:
                 if text_file.tell() != file_size:    # the last review might not completely read so will be send in the next time
                     end = text.rfind("product/productId: ")
                     left = text[end:]
-
+                print(f"start building mini index {count}: {datetime.now().strftime('%H:%M:%S')}")
                 index = MiniIndexWriter.MiniIndexWriter(text[:end], f"{dir}_l0_dir{count}", reviews_count)
+                print(f"finished building mini index {count}: {datetime.now().strftime('%H:%M:%S')}")
                 text = left
                 reviews_count = index.reviews_counter
                 count += 1
@@ -114,29 +115,39 @@ class IndexWriter:
     def merge(self, dir, count):
         # merging indexes
         state = 0
+        save = ""
         main = False
-        while self.main != True:
+
+        while not main:
 
             for i in range(0, count, 2):
+
                 path1 = f"{dir}_l{state}_dir{i}"
                 path2 = f"{dir}_l{state}_dir{i+1}"
+                path = f"{dir}_l{state + 1}_dir{(i + 1) // 2}"
                 if i == count - 1:
-                    path2 = path1
-                    path1 = path
-                    count = count -1
+                    if save != "":
+                        path2 = save
+                        save = ""
+                        count += 1
 
-                path = f"{dir}_l{state+1}_dir{(i+1)//2}"
-                if count <= 2:
+                    else:
+                        save = path1
+                        break
+
+                if count <= 2 and save == "":
                     path = dir
-                    self.main = True
+                    main = True
                     print("the main one")
 
                 print(f"state {state} merging indexes {i} , {i + 1} path1: {path1} path2:{path2} merged: {path}")
+                print(f"start merging: {datetime.now().strftime('%H:%M:%S')}")
                 self.mergeIndex(path, path1, path2)
-
+                print(f"finish merging: {datetime.now().strftime('%H:%M:%S')}")
+                shutil.rmtree(path1, ignore_errors=True)
+                shutil.rmtree(path2, ignore_errors=True)
 
             count = count // 2
-            remove_state(dir, state)
             state += 1
 
 
@@ -167,7 +178,7 @@ class IndexWriter:
                 add_term = term1
                 term1 = index1.get_curr_word_and_pl()
             elif term1[0] == term2[0]:
-                print(f"term : {term1[0]}")
+                #print(f"term : {term1[0]}")
 
                 merged_pl = self.merge_pl(term1[1], term2[1])
                 add_term = (term1[0],merged_pl)
@@ -209,8 +220,8 @@ class IndexWriter:
         un_pl1 = compress.uncompress_pl(pl1)
         un_pl2 = compress.uncompress_pl(pl2)
 
-        print(f" befoe uncompress : pl1: {pl1} pl2: {pl2}")
-        print(f" after uncompress : pl1: {un_pl1} pl2: {un_pl2}")
+        # print(f" befoe uncompress : pl1: {pl1} pl2: {pl2}")
+        # print(f" after uncompress : pl1: {un_pl1} pl2: {un_pl2}")
         #find last review id for update diffs
         review_num = 0
         for i in range(0,len(un_pl1), 2):
@@ -230,8 +241,14 @@ class IndexWriter:
     def removeIndex(self, dir):
         return
 
+
+start = datetime.now()
+start_time = start.strftime("%H:%M:%S")
+
 s = IndexWriter()
-s.write("reviews//Books1000.txt", "index100")
-
-
+s.write("reviews//Books1000000.txt", "index1000")
+end = datetime.now()
+end_time = end.strftime("%H:%M:%S")
+print("Start Time =", start_time)
+print("End Time =", end_time)
 
