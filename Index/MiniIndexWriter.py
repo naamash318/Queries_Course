@@ -42,7 +42,7 @@ class MiniIndexWriter:
         self.tokens_list.sort()
         self.crete_empty_pl()
         self.create_index()
-        # self.print_dictionary()
+        self.print_dictionary()
         self.write_index_to_files(dir)
 
     """-----------------------------------------------------------------------------------------------------------------

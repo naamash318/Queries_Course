@@ -40,6 +40,7 @@ class SlowIndexWriter:
         self.tokens_list.sort()
         self.crete_empty_pl()
         self.create_index()
+        print(self.posting_lists[10])
         #self.print_dictionary()
         self.write_index_to_files(dir)
 
@@ -173,14 +174,10 @@ class SlowIndexWriter:
         # write 36 files of posting lists
         print (len(self.posting_lists[10]))
         for i in range(len(self.posting_lists)):
-            print(i)
-            count = 0
+
             with open (f"{dir}//pl_{i}.bin","bw") as pl_file:
                 pl_buff = bytes(0)
                 for post in self.posting_lists[i]:
-                    if i == 10:
-                        count += 1
-                        print(count)
                     pl_buff += struct.pack("ii", *post)
                 pl_file.write(pl_buff)
 

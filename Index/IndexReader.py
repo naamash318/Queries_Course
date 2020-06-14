@@ -70,10 +70,10 @@ class IndexReader:
             return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
-        self.uncompress_pl(letter, pl_offset, pl_next_offset)
         if pl_offset == -1:
             return 0
-        return pl_next_offset - pl_offset
+        pl = self.uncompress_pl(letter, pl_offset, pl_next_offset)
+        return len(pl)//2
 
     """Return the number of times that a given token (i.e., word) appears in the reviews indexed 
        Returns 0 if there are no reviews containing this token"""
@@ -84,11 +84,12 @@ class IndexReader:
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
         if pl_offset == -1:
             return 0
+        pl = self.uncompress_pl(letter, pl_offset, pl_next_offset)
         count_tokens = 0
-        with open(f"{self.dir}//pl_{letter}.bin", "br") as pl_file:
-            self.pl = pl_file.read()
-        for i in range(pl_offset, pl_next_offset):
-            count_tokens += struct.unpack("i" ,self.pl[i*8+4:i*8+8])[0]
+        i = 1
+        while i < len(pl):
+            count_tokens += pl[i]
+            i += 2
         return count_tokens
 
     """Returns a series of integers (Tupple) of the form id-1, freq-1, id-2, freq-2, ... such that id-n is the n-th review containing the given token and freq-n is the number of times that the token appears in review id-n 
@@ -99,15 +100,10 @@ class IndexReader:
             return 0
         token = self.normalize(token)
         pl_offset, pl_next_offset, letter = self.pl_offset(token)
-        pl_tuple = []
         if pl_offset == -1:
-            return tuple(pl_tuple)
-        with open(f"{self.dir}//pl_{letter}.bin", "br") as pl_file:
-            self.pl = pl_file.read()
-        for i in range(pl_offset, pl_next_offset):
-            pl_tuple.append(struct.unpack("i", self.pl[i * 8:i * 8 + 4])[0])
-            pl_tuple.append(struct.unpack("i" ,self.pl[i * 8+4:i*8+8])[0])
-        return tuple(pl_tuple)
+            return ()
+        pl = self.uncompress_pl(letter, pl_offset, pl_next_offset)
+        return tuple(pl)
 
     """Return the number of product reviews available in the system"""
     def getNumberOfReviews(self):
@@ -156,39 +152,49 @@ class IndexReader:
             letter = ord(letter) - 87
         pl_offset = struct.unpack("i", self.dictionary[loc*8+4:loc*8+8])[0]
         pl_next_offset = struct.unpack("i", self.dictionary[loc*8+12:loc*8+16])[0]
-        size = os.stat(f"{self.dir}//pl_{letter}.bin").st_size
-        if pl_next_offset == 0:
-            pl_next_offset = size // 8
+
         return pl_offset, pl_next_offset, letter
+
 
     def uncompress_pl(self, pl, pl_offset, pl_next_offset):
         with open(f"{self.dir}//pl_{pl}.bin", "br") as pl_file:
-            pl_buff = b''
             pl_file.seek(pl_offset)
-            pl_buff = pl_file.read(pl_next_offset-pl_offset)
-            print(pl_buff)
+            if pl_next_offset == 0:
+                pl_buff = pl_file.read()
+            else:
+                pl_buff = pl_file.read(pl_next_offset-pl_offset)
         i = 0
         num_bytes = [1, 1, 1, 1]
         posting_list = []
         while i < len(pl_buff):
-            #print()
-            byte = pl_buff[i] #int.from_bytes(pl_buff[i].to_bytes(1, byteorder='little'), byteorder="little")
-            #print(byte)
+            byte = pl_buff[i]
             num_bytes[0] = (byte & 192) >> 6
             num_bytes[1] = (byte & 48) >> 4
             num_bytes[2] = (byte & 12) >> 2
             num_bytes[3] = byte & 3
-            print(num_bytes)
             i += 1
             prev_byte = i
+            j = 0
             for num in num_bytes:
-                print(f"prev {prev_byte} num {num}")
-                print(pl_buff[i])
-                print(int.from_bytes(pl_buff[1:1], byteorder="little"))
-                posting_list.append(int.from_bytes(pl_buff[prev_byte:prev_byte+num], byteorder="little"))
+                posting_list.append(int.from_bytes(pl_buff[prev_byte + j:prev_byte + j + num + 1], byteorder="little"))
                 prev_byte += num
+                j += 1
             i += 4
-        print(posting_list)
+        posting_list = self.calc_difference(posting_list)
+        return posting_list
+
+    def calc_difference(self, pl):
+        i = len(pl)-1
+        while i >= 2:
+            if 0 in pl:
+                pl.remove(0)
+                i -= 1
+                continue;
+            i -= 1
+            pl[i-2] = pl[i] - pl[i-2]
+            i -= 1
+        return pl
+
 
     def normalize(self, token):
         token = token.lower()
@@ -196,4 +202,6 @@ class IndexReader:
         return token
 
 r = IndexReader("dir")
-print(r.getTokenFrequency("a"))
+print(r.getTokenFrequency("commercialization"))
+print(r.getTokenCollectionFrequency("commercialization"))
+print(r.getReviewsWithToken("x"))
