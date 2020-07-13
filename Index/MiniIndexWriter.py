@@ -21,6 +21,7 @@ class MiniIndexWriter:
     num_tokens = 0
 
 
+
     """------------------------------------------------------------------------------------------------------
     Creates an Index on the disk.
 
@@ -169,6 +170,7 @@ class MiniIndexWriter:
         with open(f"{dir}//string_file.txt", "w") as str_file:
             str_file.write(self.string)
 
+
         self.send_compress_pl(dir)
         # write dictionary
         with open(f"{dir}//dict_file.bin", "bw") as dict_file:
@@ -220,6 +222,45 @@ class MiniIndexWriter:
     '''------------------------------------------------------------------------------------------------------------------------------------------------
     
     def send_compress_pl(self, dir):
+        buff_bytes = b''
+        for i in range(len(self.dictionary)):
+            loc = self.dictionary[i][1]
+            pl = self.convert_char_int(self.string[self.dictionary[i][0]])
+            if i + 1 == len(self.dictionary) or self.string[self.dictionary[i][0]] != self.string[self.dictionary[i + 1][0]]:
+                next_loc = len(self.posting_lists[pl])
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc, i )
+                self.write_pl(buff_bytes, pl, dir)
+                buff_bytes = b''
+            else:
+                next_loc = self.dictionary[i + 1][1]
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc, i, dir)
+
+
+
+    def compress_pl(self, pl, loc, next_loc, t):
+
+        pl_diffs = [self.posting_lists[pl][loc][0], self.posting_lists[pl][loc][1]]
+        for i in range(loc, next_loc-1):
+            diff = self.posting_lists[pl][i+1][0] - self.posting_lists[pl][i][0]
+            pl_diffs.append(diff)
+            pl_diffs.append(self.posting_lists[pl][i+1][1])
+        com = compress.compress_pl(pl_diffs)
+        uncom = compress.uncompress_pl(com)
+
+        if pl == 0:
+            print ("-----------------------------------------------------------")
+            print(f" term is : {self.string[self.dictionary[t][0]:self.dictionary[t+1][0]]}")
+            print(f"befor compress: {self.posting_lists[pl][loc: next_loc]}")
+            print(f"after diff: {pl_diffs}")
+            print(f"after compress: {com}")
+            print(f"after uncompress: {uncom}")
+
+        return compress.compress_pl(pl_diffs)
+------------------------------------------------------------------------------------------------------------------------------------------------'''
+
+	def send_compress_pl(self, dir):
         buff_bytes = b''
         for i in range(len(self.dictionary)):
             loc = self.dictionary[i][1]

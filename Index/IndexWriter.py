@@ -93,7 +93,7 @@ class IndexWriter:
 
         with open(inputFile) as text_file:
             count = 0
-            if file_size < self.maxBytes:
+            while True:
                 text = text_file.read(self.maxBytes)
                 index = MiniIndexWriter.MiniIndexWriter(text, f"{dir}", reviews_count)
                 tokens_count = index.num_tokens
@@ -219,6 +219,10 @@ class IndexWriter:
         with open(f"{path}//string_file.txt", "w") as str_file:
             str_file.write(string)
 
+            if word_loc1_next == "":
+                flag = 1
+            if word_loc2_next == "":
+                flag = 2
 
     def merge_pl(self,pl1,pl2):
         pl_buff = b''
