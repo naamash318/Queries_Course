@@ -6,16 +6,20 @@ import re
 import os
 import struct
 import shutil
+import compress
+import sys
 from math import log
 
 
 class MiniIndexWriter:
-    reviews_counter = 0
+
     reviews_buf = bytes(0)
     tokens_list = []
     posting_lists = []
     dictionary = []
     string = ""
+    num_tokens = 0
+
 
     """------------------------------------------------------------------------------------------------------
     Creates an Index on the disk.
@@ -24,22 +28,23 @@ class MiniIndexWriter:
             dir:        The directory in which all index files will be created, if the directory does not exist, it should be created
     ---------------------------------------------------------------------------------------------------------"""
 
-    def __init__(self, inputFile, dir):
-        with open(inputFile) as text_file:
-            text = text_file.read()
+    def __init__(self, text, dir, review_count):
         #text = inputFile
         start_review = text.find("product/productId: ")
+        self.reviews_counter = review_count
         while start_review != -1:
             end_review = text.find("product/productId: ", start_review + 1)
             start_text = text.find("review/text: ", start_review + 1)
-            if self.add_review(text[start_review:start_text], text[start_text + 13:end_review]) != 0:
+            if start_text == -1:
                 start_review = end_review
                 continue
+            # if self.add_review(text[start_review:start_text], text[start_text + 13:end_review]) != 0:
             self.reviews_counter += 1
             self.add_to_list(text[start_text + 13:end_review])
             start_review = end_review
-
+        del text
         self.tokens_list.sort()
+        self.num_tokens += len(self.tokens_list)
         self.crete_empty_pl()
         self.create_index()
         # self.print_dictionary()
@@ -56,10 +61,11 @@ class MiniIndexWriter:
 
     TODO: There is an empty byte between score to helpfulness due to struct alignments
     -----------------------------------------------------------------------------------------------------------------"""
-
+    '''
     def add_review(self, review, text):
         val = ["product/productId: ", "review/helpfulness: ", "review/score: "]
         try:
+            bin_buff = b''
             # Find product id
             loc = len(val[0])
             product_id = review[loc:loc + 10]
@@ -74,33 +80,26 @@ class MiniIndexWriter:
             # find score
             loc = review.find(val[2]) + len(val[2])
             end_line = review.find("\n", loc)
-            review_score = chr(int(float(review[loc:end_line])))  # 1 byte cnverted from string to float to int t char
+            review_score = int(float(review[loc:end_line]))  # 1 byte cnverted from string to float to int t char
 
             # calculate review len (number of tokens)
             text = re.split(r'[_\b\W]+', text)
             text = list(filter(None, text))
             review_len = len(text)
             # pack review data into binary struct
-            review_tuple = (
-            product_id.encode('ascii'), review_score.encode(), helpfulness_numerator, helpfulness_denominator,
-            review_len)
-            review_format = "10s 1s i i  i"
-            s = struct.Struct(review_format)
-            packed_data = s.pack(*review_tuple)
+            bin_buff += product_id.encode('ascii')
+            bin_buff += review_score.to_bytes(1, byteorder="little")
+            bin_buff += helpfulness_numerator.to_bytes(4, byteorder="little")
+            bin_buff += helpfulness_denominator.to_bytes(4, byteorder="little")
+            bin_buff += review_len.to_bytes(2, byteorder="little")
 
-            # print("packed review:")
-            # print(binascii.hexlify(packed_data))
-            # print("size of packed review:")
-            # print(s.size)
-
-            self.reviews_buf += packed_data
-            # Sprint("successfully added review to buf ")
+            self.reviews_buf += bin_buff
             return 0
 
         except ValueError as error:
             # print("error with review's values")
             return -1
-
+    '''
     """-----------------------------------------------------------------------------------------------------------------
     Adding the tokens of a review to the tokens list, for each tokens saving the reviewId
     Input: review: normalize review - a list of the tokens appear in the review 
@@ -174,18 +173,52 @@ class MiniIndexWriter:
         # write dictionary
         with open(f"{dir}//dict_file.bin", "bw") as dict_file:
             dict_buff = bytes(0)
-            print(self.dictionary)
             for i in range(0, len(self.dictionary)):
                 dict_buff += struct.pack("ii", *self.dictionary[i])
             dict_file.write(dict_buff)
 
-
-
         # write reviews file
-        with open(f"{dir}//reviews.bin", "bw") as reviews_file:
-            reviews_file.write(self.reviews_buf)
+        # with open("reviews.bin", "ba") as reviews_file:
+        #     reviews_file.write(self.reviews_buf)
 
 
+        # self.reviews_buf = bytes(0)
+        self.tokens_list.clear()
+        self.posting_lists.clear()
+        self.dictionary.clear()
+        self.string = ""
+
+    '''-------------------------------------------------------------------------------------------------------------------------------------------------- 
+    That's how I did it with copression : need to review it!!!
+    -----------------------------------------------------------------------------------------------------------------------------------------------------'''
+    def send_compress_pl(self, dir):
+        buff_bytes = b''
+        for i in range(len(self.dictionary)):
+            loc = self.dictionary[i][1]
+            pl = self.convert_char_int(self.string[self.dictionary[i][0]])
+            if i + 1 == len(self.dictionary) or self.string[self.dictionary[i][0]] != self.string[self.dictionary[i + 1][0]]:
+                next_loc = len(self.posting_lists[pl])
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc)
+                self.write_pl(buff_bytes, pl, dir)
+                buff_bytes = b''
+            else:
+                next_loc = self.dictionary[i + 1][1]
+                self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
+                buff_bytes += self.compress_pl(pl, loc, next_loc)
+
+
+
+    def compress_pl(self, pl, loc, next_loc):
+
+        pl_diffs = [self.posting_lists[pl][loc][0], self.posting_lists[pl][loc][1]]
+        for i in range(loc, next_loc-1):
+            diff = self.posting_lists[pl][i+1][0] - self.posting_lists[pl][i][0]
+            pl_diffs.append(diff)
+            pl_diffs.append(self.posting_lists[pl][i+1][1])
+        return compress.compress_pl(pl_diffs, 0, 0)
+    '''------------------------------------------------------------------------------------------------------------------------------------------------
+    
     def send_compress_pl(self, dir):
         buff_bytes = b''
         for i in range(len(self.dictionary)):
@@ -231,6 +264,9 @@ class MiniIndexWriter:
             first_byte <<= 2
             first_byte |= i-1
 
+
+        # print(f"first_byte is {first_byte}")
+        # print(num_bytes)
         return first_byte, num_bytes
 
     def bytes_pl(self, loc, pl, num_bytes, flag):
@@ -241,7 +277,7 @@ class MiniIndexWriter:
             buf += self.posting_lists[pl][loc+1][0].to_bytes(num_bytes[2], byteorder='little')
             buf += self.posting_lists[pl][loc+1][1].to_bytes(num_bytes[3], byteorder='little')
         return buf
-
+    '''
     def write_pl(self, buff, pl, dir):
 
         with open(f"{dir}//pl_{pl}.bin", "bw") as pl_file:
@@ -301,5 +337,4 @@ class MiniIndexWriter:
         self.dictionary.clear()
         self.string = ""
 
-
-m = MiniIndexWriter("reviews//Books100.txt", "dir")
+#m = MiniIndexWriter("reviews//Books1000.txt", "mini_dir_100", 0)

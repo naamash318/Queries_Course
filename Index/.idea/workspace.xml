@@ -16,17 +16,23 @@
         <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
       </path>
     </expand>
-    <select />
+    <select>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:changes" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02c16b67-8125-4983-b245-10369bca14c3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Index.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Index.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <list id="98172316-f3a4-49ee-85ac-5317a9b3dbab" name="Revert &quot;changes&quot;" comment="Revert &quot;changes&quot;&#10;&#10;This reverts commit 9425d0fb">
       <change beforePath="$PROJECT_DIR$/IndexReader.py" beforeDir="false" afterPath="$PROJECT_DIR$/IndexReader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MiniIndexWriter.py" beforeDir="false" afterPath="$PROJECT_DIR$/MiniIndexWriter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SlowIndexWriter.py" beforeDir="false" afterPath="$PROJECT_DIR$/SlowIndexWriter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tester.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reviews/review1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/reviews/review1.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +47,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProjectId" id="1bD0E2dsBxE5x1YkKvm5OISvutp" />
@@ -52,20 +63,44 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/venv/Scripts" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python tests.Unittests in Tester.py">
+  <component name="RunManager" selected="Python.IndexReader">
     <configuration name="IndexReader" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Index" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/IndexReader.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="MiniIndexWriter" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Index" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\TEST\AppData\Local\Programs\Python\Python38\pythonw.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MiniIndexWriter.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -177,12 +212,14 @@
       <item itemvalue="Python.try" />
       <item itemvalue="Python.try (1)" />
       <item itemvalue="Python.IndexReader" />
+      <item itemvalue="Python.MiniIndexWriter" />
       <item itemvalue="Python tests.Unittests in Tester.py" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Unittests in Tester.py" />
         <item itemvalue="Python.IndexReader" />
+        <item itemvalue="Python.MiniIndexWriter" />
+        <item itemvalue="Python tests.Unittests in Tester.py" />
         <item itemvalue="Python.try (1)" />
         <item itemvalue="Python.try" />
       </list>
@@ -205,7 +242,49 @@
       <option name="presentableId" value="LOCAL‎00001" />
       <updated>1589477921901</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL‎00002" summary="finally changes">
+      <created>1589986075302</created>
+      <option name="number" value="LOCAL‎00002" />
+      <option name="presentableId" value="LOCAL‎00002" />
+      <updated>1589986075302</updated>
+    </task>
+    <task id="LOCAL‎00003" summary="IndexWriter">
+      <created>1591118477770</created>
+      <option name="number" value="LOCAL‎00003" />
+      <option name="presentableId" value="LOCAL‎00003" />
+      <updated>1591118477770</updated>
+    </task>
+    <task id="LOCAL‎00004" summary="IndexWriter">
+      <created>1591118532826</created>
+      <option name="number" value="LOCAL‎00004" />
+      <option name="presentableId" value="LOCAL‎00004" />
+      <updated>1591118532826</updated>
+    </task>
+    <task id="LOCAL‎00005" summary="copress">
+      <created>1591291863228</created>
+      <option name="number" value="LOCAL‎00005" />
+      <option name="presentableId" value="LOCAL‎00005" />
+      <updated>1591291863228</updated>
+    </task>
+    <task id="LOCAL‎00006" summary="Mini index reader">
+      <created>1591545762832</created>
+      <option name="number" value="LOCAL‎00006" />
+      <option name="presentableId" value="LOCAL‎00006" />
+      <updated>1591545762832</updated>
+    </task>
+    <task id="LOCAL‎00007" summary="changes">
+      <created>1592120574730</created>
+      <option name="number" value="LOCAL‎00007" />
+      <option name="presentableId" value="LOCAL‎00007" />
+      <updated>1592120574730</updated>
+    </task>
+    <task id="LOCAL‎00008" summary="changes">
+      <created>1592122527397</created>
+      <option name="number" value="LOCAL‎00008" />
+      <option name="presentableId" value="LOCAL‎00008" />
+      <updated>1592122527397</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -213,7 +292,39 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="changes" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="HEAD" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="master" />
+                </option>
+              </RecentGroup>
+            </list>
           </value>
         </entry>
       </map>
@@ -221,66 +332,96 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="true" />
     <MESSAGE value="Finish" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finish" />
+    <MESSAGE value="finally changes" />
+    <MESSAGE value="IndexWriter" />
+    <MESSAGE value="copress" />
+    <MESSAGE value="Mini index reader" />
+    <MESSAGE value="changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="changes" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="555" y="115" key="#IndexReader" timestamp="1591879572420">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="555" y="115" key="#IndexReader/0.0.1920.1040@0.0.1920.1040" timestamp="1591879572420" />
     <state x="544" y="115" key="#SlowIndexWriter" timestamp="1589981191759">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="544" y="115" key="#SlowIndexWriter/0.0.1920.1040@0.0.1920.1040" timestamp="1589981191759" />
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589981375230">
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1591519841364">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589981375230" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1591519841364" />
     <state x="740" y="225" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1589396096734">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="225" key="#com.intellij.ide.macro.MacrosDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589396096734" />
-    <state x="681" y="275" key="FileChooserDialogImpl" timestamp="1589981335814">
+    <state x="526" y="86" key="CommitChangelistDialog2" timestamp="1592122665567">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="681" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1589981335814" />
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1589985694387">
+    <state x="526" y="86" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1592122665567" />
+    <state x="92" y="92" width="1736" height="856" key="DiffContextDialog" timestamp="1592121228358">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
-    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1589985694387">
+    <state x="92" y="92" width="1736" height="856" key="DiffContextDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1592121228358" />
+    <state x="681" y="275" key="FileChooserDialogImpl" timestamp="1591289777581">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
-    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1589985694387">
+    <state x="681" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1591289777581" />
+    <state width="1899" height="348" key="GridCell.Tab.0.bottom" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
-    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1589985694387">
+    <state width="1899" height="348" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.0.center" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1589985694387" />
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1589401299078">
+    <state width="1899" height="348" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.0.left" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1589401299078" />
-    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1589401299078">
+    <state width="1899" height="348" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.0.right" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1589401299078" />
-    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1589401299078">
+    <state width="1899" height="348" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1589401299078" />
-    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1589401299078">
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1591881405820">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1589401299078" />
+    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1591881405820">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1591881405820">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1591881405820" />
+    <state x="633" y="222" key="RollbackChangesDialog" timestamp="1592122576378">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="633" y="222" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1592122576378" />
     <state x="461" y="165" key="SettingsEditor" timestamp="1589981342989">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1589981342989" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1589477934518">
+    <state x="807" y="434" key="VCS.ChangelistChooser" timestamp="1591545954821">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1589477934518" />
+    <state x="807" y="434" key="VCS.ChangelistChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1591545954821" />
+    <state x="846" y="435" key="VCS.EditChangelistDialog" timestamp="1592122624545">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="846" y="435" key="VCS.EditChangelistDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1592122624545" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1592122533973">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1592122533973" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
