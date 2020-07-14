@@ -128,6 +128,7 @@ class MiniIndexWriter:
         loc_string = 0
         loc_posting_list = 0
         for i in range(len(self.tokens_list)):
+
             ch = self.convert_char_int(self.tokens_list[i][0][0])
             if i == len(self.tokens_list) - 1:
                 self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
@@ -145,6 +146,9 @@ class MiniIndexWriter:
                 self.posting_lists[ch].append((self.tokens_list[i][1], count_tokens))
                 self.string += self.tokens_list[i][0]
                 self.dictionary.append((loc_string, loc_posting_list))
+                if self.tokens_list[i][0] == "tttestttt":
+                    print("printing posting list:")
+                    print(self.posting_lists[ch])
                 if self.tokens_list[i][0][0] != self.tokens_list[i + 1][0][0]:
                     loc_posting_list = 0
                 else:
@@ -198,6 +202,7 @@ class MiniIndexWriter:
         for i in range(len(self.dictionary)):
             loc = self.dictionary[i][1]
             pl = self.convert_char_int(self.string[self.dictionary[i][0]])
+
             if i + 1 == len(self.dictionary) or self.string[self.dictionary[i][0]] != self.string[self.dictionary[i + 1][0]]:
                 next_loc = len(self.posting_lists[pl])
                 self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
@@ -208,6 +213,7 @@ class MiniIndexWriter:
                 next_loc = self.dictionary[i + 1][1]
                 self.dictionary[i] = (self.dictionary[i][0], len(buff_bytes))
                 buff_bytes += self.compress_pl(pl, loc, next_loc)
+
 
 
 
@@ -258,9 +264,9 @@ class MiniIndexWriter:
             print(f"after uncompress: {uncom}")
 
         return compress.compress_pl(pl_diffs)
-------------------------------------------------------------------------------------------------------------------------------------------------'''
+    
 
-	def send_compress_pl(self, dir):
+    def send_compress_pl(self, dir):
         buff_bytes = b''
         for i in range(len(self.dictionary)):
             loc = self.dictionary[i][1]
@@ -278,6 +284,7 @@ class MiniIndexWriter:
 
 
 
+
     def compress_pl(self, pl, loc, next_loc):
         buff_bytes = b''
         for i in range(loc, next_loc-1):
@@ -292,6 +299,8 @@ class MiniIndexWriter:
                 buff_bytes += first_byte.to_bytes(1, byteorder='little')
                 buff_bytes += self.bytes_pl(i, pl, num_bytes, 4)
         return buff_bytes
+    
+    ------------------------------------------------------------------------------------------------------------------------------------------------'''
 
     def first_byte(self, loc, pl, flag):
         num_bytes = [1, 1, 1, 1]
@@ -318,11 +327,12 @@ class MiniIndexWriter:
             buf += self.posting_lists[pl][loc+1][0].to_bytes(num_bytes[2], byteorder='little')
             buf += self.posting_lists[pl][loc+1][1].to_bytes(num_bytes[3], byteorder='little')
         return buf
-    '''
+
     def write_pl(self, buff, pl, dir):
 
         with open(f"{dir}//pl_{pl}.bin", "bw") as pl_file:
             pl_file.write(buff)
+
 
     """ Help function, prints the dictionary"""
 
@@ -338,7 +348,6 @@ class MiniIndexWriter:
     input: text: string
     output: a list of tokens in the text
     -----------------------------------------------------------------------------------------------------------------"""
-
     def normalize(self, text):
         text = text.lower()
         text = text.strip()
@@ -378,4 +387,4 @@ class MiniIndexWriter:
         self.dictionary.clear()
         self.string = ""
 
-#m = MiniIndexWriter("reviews//Books1000.txt", "mini_dir_100", 0)
+# m = MiniIndexWriter("reviews//Books1000.txt", "mini_dir_100", 0)'''

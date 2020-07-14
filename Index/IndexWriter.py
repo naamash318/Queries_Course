@@ -1,3 +1,8 @@
+"""---------------------------------------------------------------------------------------------------------------------
+Dassi Krakinovski:  318525920
+Naama Swimmer:      318754066
+---------------------------------------------------------------------------------------------------------------------"""
+
 import glob
 from math import log
 import MiniIndexWriter
@@ -6,7 +11,12 @@ import os
 import shutil
 import compress
 from datetime import datetime
+
 size_of_dic_value = 8   # 2 integers
+
+"""---------------------------------------------------------------------------------------------------------------------
+Public Functions
+---------------------------------------------------------------------------------------------------------------------"""
 
 def to_char(char):
     if char <= '9':
@@ -21,6 +31,27 @@ def remove_state(dir, state):
         shutil.rmtree(d, ignore_errors=True)
 
 
+"""---------------------------------------------------------------------------------------------------------------------
+Index Class:
+
+This class display an index and used while merging. 
+It holds the dictionary and includes method to run over the posting lists.
+
+Properties:
+    - path = the index directory
+    - dictionary = the dict file
+    - string = the terms as a long string
+    - curr_letter = the current term's first letter
+    - curr_pointer = pointer to the current term in the dict file
+    - next_pointer = pointer to the next term in the dict file
+    - curr_pl_file = a file descriptor to the current letter posting list file
+    
+Functions:
+    - get_curr_word_and_pl = 
+    The function goes over the dictionary and each time it will return the current word an its posting list.
+    
+---------------------------------------------------------------------------------------------------------------------"""
+
 
 class Index:
 
@@ -31,7 +62,6 @@ class Index:
 
     def __init__(self, path):
         self.path = path
-
         with open(f"{path}//dict_file.bin", "br") as dict_file:
             self.dictionary = dict_file.read()
         with open(f"{path}//string_file.txt") as string_file:
@@ -66,15 +96,25 @@ class Index:
         return curr_word, curr_pl
 
 
+"""---------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+The Main class : IndexWriter
+------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------"""
+
 class IndexWriter:
-    #maxBytes = 2**29
-    maxBytes = 150*(2**20)
+
+    maxBytes = 150*(2**20)  #150 MB
+    #maxBytes = 1000*(2**10)
     posting_list = []
     main = False
 
+    """------------------------------------------------------------------------------------------------------
+    Creates an Index on the disk.
 
-    """Given product review data, creates an on disk index inputFile is the path to the file containing the review data dir is the directory in which all index files will be created
-     if the directory does not exist, it should be created"""
+    Input:  inputFile:  The path to the file containing the review data
+            dir:        The directory in which all index files will be created, if the directory does not exist, it should be created
+    ---------------------------------------------------------------------------------------------------------"""
     def __init__(self, inputFile, dir):
 
         indexes_count, reviews_count, tokens_count = self.build_mini_indexes(inputFile, dir)
@@ -84,8 +124,13 @@ class IndexWriter:
         with open(f"{dir}//general.txt", 'w') as general_file:
             general_file.write(f"{reviews_count}\n{tokens_count}")
 
+    """------------------------------------------------------------------------------------------------------
+        Build mini Indexes.
+
+        For each index reading 150 Mb.
+        ---------------------------------------------------------------------------------------------------------"""
+
     def build_mini_indexes(self, inputFile, dir):
-        # building mini indexes
         reviews_count = 0
         tokens_count = 0
         text = ""
@@ -93,8 +138,8 @@ class IndexWriter:
 
         with open(inputFile) as text_file:
             count = 0
-            while True:
-                text = text_file.read(self.maxBytes)
+            if file_size < self.maxBytes:
+                text = text_file.read()
                 index = MiniIndexWriter.MiniIndexWriter(text, f"{dir}", reviews_count)
                 tokens_count = index.num_tokens
                 reviews_count = index.reviews_counter
@@ -117,8 +162,12 @@ class IndexWriter:
                 reviews_count = index.reviews_counter
                 tokens_count += index.num_tokens
                 count += 1
+
         return count, reviews_count, tokens_count
 
+    """------------------------------------------------------------------------------------------------------
+        Merge the mini indexes into one index.
+        ---------------------------------------------------------------------------------------------------------"""
     def merge(self, dir, count):
         # merging indexes
         state = 0
@@ -157,8 +206,9 @@ class IndexWriter:
             count = count // 2
             state += 1
 
-
-
+    """------------------------------------------------------------------------------------------------------
+        Getting 2 pathes to indexes and merging them
+    ---------------------------------------------------------------------------------------------------------"""
     def mergeIndex(self, path, path1, path2, main):
 
         string = ''
@@ -219,10 +269,6 @@ class IndexWriter:
         with open(f"{path}//string_file.txt", "w") as str_file:
             str_file.write(string)
 
-            if word_loc1_next == "":
-                flag = 1
-            if word_loc2_next == "":
-                flag = 2
 
     def merge_pl(self,pl1,pl2):
         pl_buff = b''
@@ -237,7 +283,7 @@ class IndexWriter:
         un_pl2[0] = un_pl2[0] - review_num
 
         merged = compress.compress_pl(un_pl1 + un_pl2, un_pl1, un_pl2)
-        pl_buff += pl1 + bytes(2) + pl2  # TODO:
+        pl_buff += pl1 + bytes(2) + pl2
         return merged
 
 
@@ -247,12 +293,12 @@ class IndexWriter:
         shutil.rmtree(dir, ignore_errors=True)
 
 
-start = datetime.now()
-start_time = start.strftime("%H:%M:%S")
-
-s = IndexWriter("reviews//Books10000000.txt", "dir_10m")
-end = datetime.now()
-end_time = end.strftime("%H:%M:%S")
-print("Start Time =", start_time)
-print("End Time =", end_time)
+# start = datetime.now()
+# start_time = start.strftime("%H:%M:%S")
+#
+# s = IndexWriter("reviews\\Books100.txt", "my_dir")
+# end = datetime.now()
+# end_time = end.strftime("%H:%M:%S")
+# print("Start Time =", start_time)
+# print("End Time =", end_time)
 
